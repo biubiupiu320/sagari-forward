@@ -63,19 +63,18 @@
 </template>
 
 <script>
-    import axios from "axios";
-
-    let sessionId = localStorage.getItem("xxl-sso-session-id");
-    axios.defaults.headers.common['xxl-sso-session-id'] = sessionId;
+    import {request} from "@/network/request";
 
     export default {
         name: "BindAccount",
         created() {
             this.isLoading = true;
-            axios.get("http://localhost/user/getOtherPlatform").then(res => {
+            request({
+                url: "/user/getOtherPlatform",
+                method: "GET"
+            }).then(res => {
                 let result = res.data;
                 if (result.code === 200) {
-                    console.log(result)
                     let data = result.data;
                     if (data.qqId !== null && data.qqId !== undefined) {
                         this.qqId = data.qqId;
@@ -111,9 +110,12 @@
                 switch (str) {
                     case 'qq':
                         if (this.qqId === '') {
-                            window.location.href="https://graph.qq.com/oauth2.0/authorize?response_type=code&client_id=101864484&redirect_uri=http://127.0.0.1:8080/qq_callback&state=1";
+                            window.location.href="https://graph.qq.com/oauth2.0/authorize?response_type=code&client_id=101864484&redirect_uri=http://sagari.cn/qq_callback&state=1";
                         } else {
-                            axios.get("http://localhost/user/unbindQQ").then(res => {
+                            request({
+                                url: "/user/unbindQQ",
+                                method: "GET"
+                            }).then(res => {
                                 let result = res.data;
                                 if (result.code === 200) {
                                     this.$message({

@@ -32,9 +32,9 @@ const defaultConfig = {
     dialogMaskBgColor : "#000000", // 设置透明遮罩层的背景颜色，全局通用，默认为#fff
     imageUpload: true,
     imageFormats: ["jpg", "jpeg", "gif", "png", "bmp", "webp"],
-    imageUploadURL: "http://localhost/file/insert-image",
+    imageUploadURL: "http://39.96.47.184/file/insert-image",
     crossDomainUpload: true,
-    uploadCallbackURL : "http://localhost:8080/callback.html",
+    uploadCallbackURL : "http://sagari.cn/callback.html",
     placeholder: '请在此详细描述你的问题',
     onload: function () {
         //console.log('onload', this);

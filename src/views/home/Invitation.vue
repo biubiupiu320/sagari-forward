@@ -10,18 +10,13 @@
                 </div>
                 <div class="blog-content">{{item.content}}</div>
                 <div>
-                    <span>
-                        <el-popover placement="top-start" width="200" trigger="hover"
-                            content="我不会使用双截棍">
-                            <span slot="reference" class="blog-user">
-                                <el-link :underline="false">
-                                    <el-avatar :size="24" :src="item.user.avatar">
+                    <span class="blog-user">
+                        <el-link :underline="false">
+                            <el-avatar :size="24" :src="item.user.avatar">
                                         <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png"/>
-                                    </el-avatar>
-                                </el-link>&nbsp;
-                                <el-link :underline="false">{{item.user.username}}</el-link>
-                            </span>
-                        </el-popover>
+                            </el-avatar>
+                        </el-link>&nbsp;
+                        <el-link :underline="false">{{item.user.username}}</el-link>
                     </span>
                     <span class="blog-info">
                         <el-link :underline="false" class="iconfont el-icon-ali-good">{{item.goodCount}}</el-link>
@@ -40,7 +35,7 @@
 </template>
 
 <script>
-    import axios from "axios";
+    import {request} from "@/network/request";
 
     export default {
         name: "Invitation",
@@ -83,7 +78,9 @@
             },
             getHomeArticle(page = 0, size = 10) {
                 this.isLoading = true;
-                axios.get("http://localhost/search/getHomeArticle", {
+                request({
+                    url: "/search/getHomeArticle",
+                    method: "GET",
                     params: {
                         page,
                         size
@@ -111,10 +108,40 @@
                 }).catch(err => {
 
                 });
+                /*axios.get("http://localhost/search/getHomeArticle", {
+                    params: {
+                        page,
+                        size
+                    }
+                }).then(res => {
+                    let result = res.data;
+                    if (result.code === 200) {
+                        let temps = result.data.result.map(item => item._source);
+                        for (const temp of temps) {
+                            this.invitations.push(temp)
+                        }
+                        if (temps.length !== 0) {
+                            this.page++;
+                        } else {
+                            this.$message({
+                                message: "没有更多推荐文章了",
+                                type: "success",
+                                center: true,
+                                offset: 100
+                            });
+                        }
+                        this.isLoading = false;
+                        this.loading = false;
+                    }
+                }).catch(err => {
+
+                });*/
             },
             getArticleByCategory(categoryId, page = 0, size = 10) {
                 this.isLoading = true;
-                axios.get("http://localhost/search/getArticleByCategory", {
+                request({
+                    url: "/search/getArticleByCategory",
+                    method: "GET",
                     params: {
                         categoryId,
                         page,
@@ -143,6 +170,35 @@
                 }).catch(err => {
 
                 });
+                /*axios.get("http://localhost/search/getArticleByCategory", {
+                    params: {
+                        categoryId,
+                        page,
+                        size
+                    }
+                }).then(res => {
+                    let result = res.data;
+                    if (result.code === 200) {
+                        let temps = result.data.result.map(item => item._source);
+                        for (const temp of temps) {
+                            this.invitations.push(temp)
+                        }
+                        if (temps.length !== 0) {
+                            this.page++;
+                        } else {
+                            this.$message({
+                                message: "没有更多推荐文章了",
+                                type: "success",
+                                center: true,
+                                offset: 100
+                            });
+                        }
+                        this.isLoading = false;
+                        this.loading = false;
+                    }
+                }).catch(err => {
+
+                });*/
             }
         }
     }

@@ -46,7 +46,7 @@
                             </div>
                             <div class="oauth" v-if="!isLogin">
                                 第三方登录:
-                                <a href="https://graph.qq.com/oauth2.0/authorize?response_type=code&client_id=101864484&redirect_uri=http://sagari.cn:4396/qq_callback&state=1">
+                                <a href="https://graph.qq.com/oauth2.0/authorize?response_type=code&client_id=101864484&redirect_uri=http://sagari.cn/qq_callback&state=1">
                                     <img src="../../assets/image/qq.svg" alt="QQ" class="oauth-btn">
                                 </a>
                                 <img src="../../assets/image/github.svg" alt="Github" class="oauth-btn">
@@ -68,10 +68,7 @@
 
 <script>
     import Invitation from "@/views/home/Invitation";
-    import axios from "axios";
-
-    let sessionId = localStorage.getItem("xxl-sso-session-id");
-    axios.defaults.headers.common['xxl-sso-session-id'] = sessionId;
+    import {request} from "@/network/request";
 
     export default {
         name: "Home",
@@ -79,7 +76,10 @@
             setTimeout(() => {
                 this.isLogin = this.$store.getters.isLogin;
             }, 500);
-            axios.get('http://localhost/tag/getCategory').then(res => {
+            request({
+                url: "/tag/getCategory",
+                method: "GET",
+            }).then(res => {
                 let result = res.data;
                 if (result.code === 200) {
                     this.category = result.data.category;
@@ -92,7 +92,10 @@
                     offset: 100
                 });
             });
-            axios.get('http://localhost/tag/getHotTag').then(res => {
+            request({
+                url: "/tag/getHotTag",
+                method: "GET"
+            }).then(res => {
                 let result = res.data;
                 if (result.code === 200) {
                     this.hotTags = result.data.hotTags;

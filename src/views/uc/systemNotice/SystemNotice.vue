@@ -43,10 +43,7 @@
 
 <script>
     import moment from 'moment';
-    import axios from "axios";
-
-    let sessionId = localStorage.getItem("xxl-sso-session-id");
-    axios.defaults.headers.common['xxl-sso-session-id'] = sessionId;
+    import {request} from "@/network/request";
 
     export default {
         name: "SystemNotice",
@@ -66,7 +63,11 @@
                 this.notices[index].read = true;
                 let id = [];
                 id.push(this.notices[index].id);
-                axios.put("http://localhost/notice/markReadSystem", id).then(res => {
+                request({
+                    url: "/notice/markReadSystem",
+                    method: "PUT",
+                    data: id
+                }).then(res => {
                     let result = res.data;
                     if (result.code === 200) {
                         let notice = this.notices[index];
@@ -77,7 +78,10 @@
                 });
             },
             markReadAll() {
-                axios.put("http://localhost/notice/markReadSystemAll").then(res => {
+                request({
+                    url: "/notice/markReadSystemAll",
+                    method: "PUT"
+                }).then(res => {
                     let result = res.data;
                     if (result.code === 200) {
                         this.notices = this.notices.map(item => {
@@ -92,7 +96,9 @@
             },
             getNotice(page = 1, size = 10) {
                 this.isLoading = true;
-                axios.get("http://localhost/notice/getNoticeSystem", {
+                request({
+                    url: "/notice/getNoticeSystem",
+                    method: "GET",
                     params: {
                         page,
                         size

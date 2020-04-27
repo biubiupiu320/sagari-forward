@@ -10,7 +10,7 @@
                         <el-avatar :size="100" :src="formData.avatar">
                             <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png"/>
                         </el-avatar>
-                        <el-upload action="http://localhost/file/upload"
+                        <el-upload action="http://39.96.47.184/file/upload"
                                    :data="{type: 1}"
                                    :show-file-list="false"
                                    :on-success="handleAvatarSuccess"
@@ -145,17 +145,17 @@
 </template>
 
 <script>
-    import axios from "axios";
     import moment from "moment";
-
-    let sessionId = localStorage.getItem("xxl-sso-session-id");
-    axios.defaults.headers.common['xxl-sso-session-id'] = sessionId;
+    import {request} from "@/network/request";
 
     export default {
         name: "Profile",
         created() {
             this.isLoading = true;
-            axios.get('http://localhost/user/getUserAll').then(res => {
+            request({
+                url: "/user/getUserAll",
+                method: "GET"
+            }).then(res => {
                 let result = res.data;
                 if (result.code === 200) {
                     this.formData = result.data;
@@ -407,16 +407,20 @@
         methods: {
             modifyProfile() {
                 this.isLoading = true;
-                axios.post('http://localhost/user/modifyUser', {
-                    username: this.formData.username,
-                    gender: this.formData.gender,
-                    birth: this.formData.birth,
-                    office: this.formData.office,
-                    company: this.formData.company,
-                    education: this.formData.education,
-                    school: this.formData.school,
-                    profession: this.formData.profession,
-                    introduction: this.formData.introduction
+                request({
+                    url: "/user/modifyUser",
+                    method: "POST",
+                    data: {
+                        username: this.formData.username,
+                        gender: this.formData.gender,
+                        birth: this.formData.birth,
+                        office: this.formData.office,
+                        company: this.formData.company,
+                        education: this.formData.education,
+                        school: this.formData.school,
+                        profession: this.formData.profession,
+                        introduction: this.formData.introduction
+                    }
                 }).then(res => {
                     let result = res.data;
                     if (result.code === 200) {
@@ -453,7 +457,9 @@
             handleAvatarSuccess(res, file) {
                 if (res.code === 200) {
                     this.formData.avatar = res.data.url;
-                    axios.get("http://localhost/user/modifyAvatar", {
+                    request({
+                        url: "/user/modifyAvatar",
+                        method: "GET",
                         params: {
                             avatar: this.formData.avatar
                         }
@@ -481,7 +487,7 @@
                             center: true,
                             offset: 100
                         });
-                    })
+                    });
                 } else {
                     this.$message({
                         message: '上传头像失败，请重试',

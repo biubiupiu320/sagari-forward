@@ -46,7 +46,7 @@
             <el-divider>第三方用户登录</el-divider>
             <ul>
                 <li>
-                    <a href="https://graph.qq.com/oauth2.0/authorize?response_type=code&client_id=101864484&redirect_uri=http://127.0.0.1:8080/qq_callback&state=1">
+                    <a href="https://graph.qq.com/oauth2.0/authorize?response_type=code&client_id=101864484&redirect_uri=http://sagari.cn/qq_callback&state=1">
                         <img src="../../assets/image/qq.svg" alt="QQ登录">
                     </a>
                 </li>
@@ -62,7 +62,6 @@
 </template>
 
 <script>
-    import axios from 'axios';
     import {request} from "@/network/request";
 
     export default {
@@ -110,6 +109,7 @@
                                     let result = res.data;
                                     if (result.code === 200) {
                                         let userData = JSON.parse(result.data);
+                                        this.$store.commit("setUser", userData);
                                         this.$message({
                                             message: '用户 ' + userData.username + ' 登录成功，欢迎回来！',
                                             type: "success",
@@ -135,37 +135,6 @@
                                         offset: 100
                                     });
                                 });
-                                /*axios.get('http://localhost/xxl-sso-server/loginCheck', {
-                                    headers: { 'xxl-sso-session-id': data.data }
-                                }).then(res => {
-                                    let result = res.data;
-                                    if (result.code === 200) {
-                                        let userData = JSON.parse(result.data);
-                                        this.$message({
-                                            message: '用户 ' + userData.username + ' 登录成功，欢迎回来！',
-                                            type: "success",
-                                            center: true,
-                                            offset: 100
-                                        });
-                                        setTimeout(() => {
-                                            this.jump('/');
-                                        }, 1000);
-                                    } else {
-                                        this.$message({
-                                            message: '用户未登录',
-                                            type: "error",
-                                            center: true,
-                                            offset: 100
-                                        });
-                                    }
-                                }).catch(err => {
-                                    this.$message({
-                                        message: '用户未登录',
-                                        type: "error",
-                                        center: true,
-                                        offset: 100
-                                    });
-                                });*/
                             } else {
                                 this.$refs['formData'].resetFields();
                                 this.$message({
@@ -193,74 +162,6 @@
                                 });
                             }
                         });
-                        /*axios.get('http://localhost/xxl-sso-server/login', {
-                            params: {
-                                account: this.formData.account,
-                                password: this.formData.password,
-                                isRem: this.formData.isRem
-                            }
-                        }).then(response => {
-                            let data = response.data;
-                            if (data.code === 200) {
-                                localStorage.setItem("xxl-sso-session-id", data.data);
-                                axios.get('http://localhost/xxl-sso-server/loginCheck', {
-                                    headers: { 'xxl-sso-session-id': data.data }
-                                }).then(res => {
-                                    let result = res.data;
-                                    if (result.code === 200) {
-                                        let userData = JSON.parse(result.data);
-                                        this.$message({
-                                            message: '用户 ' + userData.username + ' 登录成功，欢迎回来！',
-                                            type: "success",
-                                            center: true,
-                                            offset: 100
-                                        });
-                                        setTimeout(() => {
-                                            this.jump('/');
-                                        }, 1000);
-                                    } else {
-                                        this.$message({
-                                            message: '用户未登录',
-                                            type: "error",
-                                            center: true,
-                                            offset: 100
-                                        });
-                                    }
-                                }).catch(err => {
-                                    this.$message({
-                                        message: '用户未登录',
-                                        type: "error",
-                                        center: true,
-                                        offset: 100
-                                    });
-                                });
-                            } else {
-                                this.$refs['formData'].resetFields();
-                                this.$message({
-                                    message: '您输入的用户名或密码不正确',
-                                    type: "error",
-                                    center: true,
-                                    offset: 100
-                                });
-                            }
-                        }).catch(error => {
-                            let data = error.response.data;
-                            if (data.code === 403) {
-                                this.$message({
-                                    message: data.msg,
-                                    type: "error",
-                                    center: true,
-                                    offset: 100
-                                })
-                            } else {
-                                this.$message({
-                                    message: '服务器打了个盹，再试一次吧',
-                                    type: "error",
-                                    center: true,
-                                    offset: 100
-                                });
-                            }
-                        });*/
                     }
                 })
             },

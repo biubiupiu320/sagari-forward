@@ -3,7 +3,7 @@
 </template>
 
 <script>
-    import axios from 'axios';
+    import {request} from "@/network/request";
 
     export default {
         name: "QQCallback",
@@ -16,13 +16,14 @@
                 customClass: 'lock'
             });
             let code = this.$route.query.code;
-            axios.get("http://localhost/user/qq_signin", {
+            request({
+                url: "/user/qq_signin",
+                method: "GET",
                 params: {
-                    code,
+                    code
                 }
             }).then(res => {
                 let result = res.data;
-                console.log(result)
                 if (result.code === 200) {
                     localStorage.setItem("xxl-sso-session-id", result.data.sessionId);
                     this.$router.push("/");
@@ -56,7 +57,6 @@
                         }
                     });
                 }
-                console.log(err.response)
                 loading.close();
             });
         }

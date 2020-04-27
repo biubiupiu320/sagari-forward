@@ -43,12 +43,14 @@
             window.$ = window.jQuery = $;
             setTimeout(() => {
                 this.initView();
-                this.imageDOMs = $('.picture');
-                for(let item of this.imageDOMs) {
-                    this.imageUrlList.push($(item).attr('src'));
-                    $(item).click(this.showImage);
-                }
-                this.$emit('register');
+                setTimeout(() => {
+                    this.imageDOMs = $('.picture');
+                    for(let item of this.imageDOMs) {
+                        this.imageUrlList.push($(item).attr('src'));
+                        $(item).click(this.showImage);
+                    }
+                    this.$emit('register');
+                }, 1500);
             }, 1000);
         },
         methods: {

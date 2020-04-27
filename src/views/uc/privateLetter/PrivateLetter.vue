@@ -136,10 +136,7 @@
 </template>
 
 <script>
-    import axios from 'axios'
-
-    let sessionId = localStorage.getItem("xxl-sso-session-id");
-    axios.defaults.headers.common['xxl-sso-session-id'] = sessionId;
+    import {request} from "@/network/request";
 
     export default {
         name: "PrivateLetter",
@@ -162,7 +159,9 @@
                 this.createSocket();
                 this.handleSelect(this.activeIndex);
             }, 500);
-            axios.get("http://localhost/interactive/getPersonList", {
+            request({
+                url: "/interactive/getPersonList",
+                method: "GET",
                 params: {
                     page: 1,
                     size: 10
@@ -187,7 +186,7 @@
         },
         methods: {
             createSocket() {
-                this.webSocket = new WebSocket("ws://localhost:8400/letter/" + this.user.id);
+                this.webSocket = new WebSocket("ws://39.97.162.33:8400/letter/" + this.user.id);
                 this.webSocket.onopen = () => {
                     console.log("socket连接已经建立")
                 }
@@ -270,7 +269,9 @@
                 });
             },
             getLetters(toId, page, size) {
-                axios.get("http://localhost/interactive/getLetters", {
+                request({
+                    url: "/interactive/getLetters",
+                    method: "GET",
                     params: {
                         toId,
                         page,
@@ -314,7 +315,11 @@
                 for (let file of this.fileList) {
                     fileData.append('file', file.raw);
                 }
-                axios.post("http://localhost/file/upload-batch", fileData).then(res => {
+                request({
+                    url: "/file/upload-batch",
+                    method: "POST",
+                    data: fileData
+                }).then(res => {
                     let result = res.data;
                     let msg = "";
                     if (result.code === 200) {
@@ -336,7 +341,7 @@
                     }
                 }).catch(err => {
 
-                })
+                });
             },
             handleData() {
                 for (let item of this.message) {

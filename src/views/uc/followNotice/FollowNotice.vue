@@ -51,9 +51,7 @@
 
 <script>
     import axios from "axios";
-
-    let sessionId = localStorage.getItem("xxl-sso-session-id");
-    axios.defaults.headers.common['xxl-sso-session-id'] = sessionId;
+    import {request} from "@/network/request";
 
     export default {
         name: "FollowNotice",
@@ -72,7 +70,11 @@
             markRead(index) {
                 let id = [];
                 id.push(this.notices[index].id);
-                axios.post("http://localhost/notice/noticeFollow", id).then(res => {
+                request({
+                    url: "/notice/noticeFollow",
+                    method: "POST",
+                    data: id
+                }).then(res => {
                     let result = res.data;
                     if (result.code === 200) {
                         let notice = this.notices[index];
@@ -85,7 +87,9 @@
             remove(index) {
                 let id = [];
                 id.push(this.notices[index].id);
-                axios.delete("http://localhost/notice/noticeFollow", {
+                request({
+                    url: "/notice/noticeFollow",
+                    method: "DELETE",
                     data: id
                 }).then(res => {
                     let result = res.data;
@@ -96,7 +100,11 @@
             },
             markReadAll() {
                 let ids = this.notices.filter(item => !item.read).map(item => item.id);
-                axios.post("http://localhost/notice/noticeFollow", ids).then(res => {
+                request({
+                    url: "/notice/noticeFollow",
+                    method: "POST",
+                    data: ids
+                }).then(res => {
                     let result = res.data;
                     if (result.code === 200) {
                         this.notices = this.notices.map(item => {
@@ -108,7 +116,9 @@
             },
             removeAll() {
                 let ids = this.notices.map(item => item.id);
-                axios.delete("http://localhost/notice/noticeFollow", {
+                request({
+                    url: "/notice/noticeFollow",
+                    method: "DELETE",
                     data: ids
                 }).then(res => {
                     let result = res.data;
@@ -122,7 +132,9 @@
             },
             getNotice(page = 1, size = 10) {
                 this.isLoading = true;
-                axios.get("http://localhost/notice/noticeFollow", {
+                request({
+                    url: "/notice/noticeFollow",
+                    method: "GET",
                     params: {
                         page,
                         size

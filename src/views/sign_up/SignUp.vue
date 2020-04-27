@@ -21,7 +21,7 @@
                 <el-form-item prop="avatar" label="用户头像" id="avatar">
                     <el-upload
                         class="avatar-uploader"
-                        action="http://localhost/file/upload"
+                        action="http://39.96.47.184/file/upload"
                         :data="{type:1}"
                         :show-file-list="false"
                         :on-success="handleAvatarSuccess"
@@ -117,7 +117,7 @@
 </template>
 
 <script>
-    import axios from 'axios';
+    import {request} from "@/network/request";
 
     export default {
         name: "SignUp",
@@ -128,7 +128,9 @@
                 } else if (value.length < 2 || value.length > 10) {
                     return callback(new Error('用户名只能为2-10个字'));
                 }
-                axios.get('http://localhost/user/isExistByUsername', {
+                request({
+                    url: "/user/isExistByUsername",
+                    method: "GET",
                     params: {
                         username: value
                     }
@@ -160,7 +162,9 @@
                 if (!new RegExp(/\w[-\w.+]*@([A-Za-z0-9][-A-Za-z0-9]+\.)+[A-Za-z]{2,14}/).test(value)) {
                     return callback(new Error('请输入正确的邮箱地址'));
                 }
-                axios.get('http://localhost/user/isExistByEmail', {
+                request({
+                    url: "/user/isExistByEmail",
+                    method: "GET",
                     params: {
                         email: value
                     }
@@ -178,7 +182,9 @@
                 if (!new RegExp(/0?(13|14|15|18|17)[0-9]{9}/).test(value)) {
                     return callback(new Error('请输入正确的手机号码'));
                 }
-                axios.get('http://localhost/user/isExistByPhone', {
+                request({
+                    url: "/user/isExistByPhone",
+                    method: "GET",
                     params: {
                         phone: value
                     }
@@ -227,13 +233,17 @@
             signUp() {
                 this.$refs['formData'].validate((valid) => {
                     if (valid) {
-                        axios.post('http://localhost/user/sign-up', {
-                            username: this.formData.username,
-                            password: this.formData.password,
-                            email: this.formData.email,
-                            phone: this.formData.phone,
-                            verifyCode: this.formData.vCode,
-                            avatar: this.formData.avatar
+                        request({
+                            url: "/user/sign-up",
+                            method: "POST",
+                            data: {
+                                username: this.formData.username,
+                                password: this.formData.password,
+                                email: this.formData.email,
+                                phone: this.formData.phone,
+                                verifyCode: this.formData.vCode,
+                                avatar: this.formData.avatar
+                            }
                         }).then(res => {
                             let result = res.data;
                             if (result.code === 200) {
@@ -320,7 +330,9 @@
                     });
                     return;
                 }
-                axios.get('http://localhost/vcode/getCode', {
+                request({
+                    url: "/vcode/getCode",
+                    method: "GET",
                     params: {
                         phone: this.formData.phone,
                         type: 1,

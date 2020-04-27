@@ -57,15 +57,15 @@
 </template>
 
 <script>
-    import axios from "axios";
-
-    let sessionId = localStorage.getItem("xxl-sso-session-id");
-    axios.defaults.headers.common['xxl-sso-session-id'] = sessionId;
+    import {request} from "@/network/request";
 
     export default {
         name: "ModifyPassword",
         created() {
-            axios.get('http://localhost/user/getPhone').then(res => {
+            request({
+                url: "/user/getPhone",
+                method: "GET"
+            }).then(res => {
                 let result = res.data;
                 if (result.code === 200) {
                     this.phone = result.data.phone;
@@ -77,7 +77,7 @@
                     center: true,
                     offset: 100
                 });
-            })
+            });
         },
         data() {
             let validatePassword = (rule, value, callback) => {
@@ -121,7 +121,9 @@
         },
         methods: {
             getVCode() {
-                axios.get('http://localhost/vcode/getCode', {
+                request({
+                    url: "/vcode/getCode",
+                    method: "GET",
                     params: {
                         phone: this.phone,
                         type: 2,
@@ -164,9 +166,13 @@
                 this.isLoading = true;
                 this.$refs['modifyForm'].validate((valid) => {
                     if (valid) {
-                        axios.post('http://localhost/user/modifyPassword', {
-                            password: this.modifyForm.password,
-                            verifyCode: this.modifyForm.vCode
+                        request({
+                            url: "/user/modifyPassword",
+                            method: "POST",
+                            data: {
+                                password: this.modifyForm.password,
+                                verifyCode: this.modifyForm.vCode
+                            }
                         }).then(res => {
                             let result = res.data;
                             if (result.code === 200) {

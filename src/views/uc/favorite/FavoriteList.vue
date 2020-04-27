@@ -39,18 +39,13 @@
                                 {{item.content}}
                             </div>
                             <div>
-                                <span>
-                                    <el-popover placement="top-start" width="200" trigger="hover"
-                                        content="我不会使用双截棍">
-                                        <span slot="reference" class="blog-user">
-                                            <el-link :underline="false">
-                                                <el-avatar :size="24" :src="item.user.avatar">
-                                                    <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png"/>
-                                                </el-avatar>
-                                            </el-link>&nbsp;
-                                            <el-link :underline="false">{{item.user.username}}</el-link>
-                                        </span>
-                                    </el-popover>
+                                <span class="blog-user">
+                                    <el-link :underline="false">
+                                        <el-avatar :size="24" :src="item.user.avatar">
+                                            <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png"/>
+                                        </el-avatar>
+                                    </el-link>&nbsp;
+                                    <el-link :underline="false">{{item.user.username}}</el-link>
                                 </span>
                                 <span class="blog-info">
                                     <el-link :underline="false"
@@ -179,16 +174,15 @@
 </template>
 
 <script>
-    import axios from "axios";
-
-    let sessionId = localStorage.getItem("xxl-sso-session-id");
-    axios.defaults.headers.common['xxl-sso-session-id'] = sessionId;
+    import {request} from "@/network/request";
 
     export default {
         name: "FavoriteList",
         created() {
             this.loading = true;
-            axios.get('http://localhost/collect/getCollect', {
+            request({
+                url: "/collect/getCollect",
+                method: "GET",
                 params: {
                     favoritesId: this.currentFavorites.id,
                     page: 1,
@@ -291,9 +285,13 @@
                 this.cancelCollect(articleIds, temp);
             },
             cancelCollect(articleIds, temp) {
-                axios.post('http://localhost/collect/cancelCollectArticle', {
-                    articleIds,
-                    favoritesId: this.currentFavorites.id
+                request({
+                    url: "/collect/cancelCollectArticle",
+                    method: "POST",
+                    data: {
+                        articleIds,
+                        favoritesId: this.currentFavorites.id
+                    }
                 }).then(res => {
                     let result = res.data;
                     if (result.code === 200) {
@@ -338,11 +336,15 @@
                 this.loading = true;
                 this.$refs['currentFavorites'].validate((valid) => {
                     if (valid) {
-                        axios.post('http://localhost/collect/modifyFavorites', {
-                            id: this.currentFavorites.id,
-                            title: this.currentFavorites.title,
-                            description: this.currentFavorites.description,
-                            pri: this.currentFavorites.pri
+                        request({
+                            url: "/collect/modifyFavorites",
+                            method: "POST",
+                            data: {
+                                id: this.currentFavorites.id,
+                                title: this.currentFavorites.title,
+                                description: this.currentFavorites.description,
+                                pri: this.currentFavorites.pri
+                            }
                         }).then(res => {
                             let result = res.data;
                             if (result.code === 200) {
@@ -381,7 +383,13 @@
             },
             delFavorites() {
                 this.loading = true;
-                axios.post('http://localhost/collect/deleteFavorites?id=' + this.currentFavorites.id).then(res => {
+                request({
+                    url: "/collect/deleteFavorites",
+                    method: "POST",
+                    params: {
+                        id: this.currentFavorites.id
+                    }
+                }).then(res => {
                     let result = res.data;
                     if (result.code === 200) {
                         this.delDialogVisible = false;
@@ -415,18 +423,15 @@
             moveToFavorites() {
                 this.loading = true;
                 let temp = this.articles.filter(item => !item.isChecked);
-                /*let srcFavorite = [];
-                for (let i = 0; i < this.articles.length; i++) {
-                    if (this.articles[i].isChecked) {
-                        srcFavorite.push(i);
-                    }
-                }
-                this.$emit('moveToFavorite', this.index, this.moveToIndex, srcFavorite, temp);*/
                 let articleIds = this.articles.filter(item => item.isChecked).map(item => item.id);
-                axios.post('http://localhost/collect/moveToFavorites', {
-                    articleIds,
-                    source: this.currentFavorites.id,
-                    target: this.moveToIndex
+                request({
+                    url: "/collect/moveToFavorites",
+                    method: "POST",
+                    data: {
+                        articleIds,
+                        source: this.currentFavorites.id,
+                        target: this.moveToIndex
+                    }
                 }).then(res => {
                     let result = res.data;
                     if (result.code === 200) {
@@ -465,7 +470,9 @@
             },
             switchCurrentPage(currentPage) {
                 this.loading = true;
-                axios.get('http://localhost/collect/getCollect', {
+                request({
+                    url: "/collect/getCollect",
+                    method: "GET",
                     params: {
                         favoritesId: this.currentFavorites.id,
                         page: currentPage,

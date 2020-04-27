@@ -96,11 +96,8 @@
 
 <script>
     import MarkdownEditor from "@/views/publish/MarkdownEditor";
-    import MarkdownEditor2 from "@/views/publish/MarkdownEditor2";
-    import axios from 'axios';
-
-    let sessionId = localStorage.getItem("xxl-sso-session-id");
-    axios.defaults.headers.common['xxl-sso-session-id'] = sessionId;
+    /*import MarkdownEditor2 from "@/views/publish/MarkdownEditor2";*/
+    import {request} from "@/network/request";
 
     export default {
         name: "Publish",
@@ -126,7 +123,10 @@
         },
         created() {
             this.isLoading = true;
-            axios.get('http://localhost/tag/getTag').then(res => {
+            request({
+                url: "/tag/getTag",
+                method: "GET"
+            }).then(res => {
                 let result = res.data;
                 if (result.code === 200) {
                     this.category = result.data.category;
@@ -230,10 +230,14 @@
                     return;
                 }
                 let tagIds = this.tags.map(item => item.id).join(',');
-                axios.put('http://localhost/article/article', {
-                    title: this.title,
-                    content: this.$refs.editor.getMarkdown(),
-                    tags: tagIds
+                request({
+                    url: "/article/article",
+                    method: "PUT",
+                    data: {
+                        title: this.title,
+                        content: this.$refs.editor.getMarkdown(),
+                        tags: tagIds
+                    }
                 }).then(res => {
                     let result = res.data;
                     if (result.code === 200) {
@@ -274,9 +278,13 @@
                     alert('标签的标题最多15个字');
                     return;
                 }
-                axios.put('http://localhost/tag/createTag', {
-                    categoryId: newTag.categoryId,
-                    title: newTag.title
+                request({
+                    url: "/tag/createTag",
+                    method: "PUT",
+                    data: {
+                        categoryId: newTag.categoryId,
+                        title: newTag.title
+                    }
                 }).then(res => {
                     let result = res.data;
                     if (result.code === 200) {
@@ -302,8 +310,7 @@
             }
         },
         components: {
-            MarkdownEditor,
-            MarkdownEditor2
+            MarkdownEditor
         }
     }
 </script>

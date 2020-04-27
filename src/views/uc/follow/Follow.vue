@@ -45,10 +45,7 @@
 </template>
 
 <script>
-    import axios from "axios";
-
-    let sessionId = localStorage.getItem("xxl-sso-session-id");
-    axios.defaults.headers.common['xxl-sso-session-id'] = sessionId;
+    import {request} from "@/network/request";
 
     export default {
         name: "Follow",
@@ -67,7 +64,13 @@
             follow(index) {
                 this.isFollowing = true;
                 let follow = this.follows[index];
-                axios.put('http://localhost/interactive/follow?followId=' + follow.id).then(res => {
+                request({
+                    url: "/interactive/follow",
+                    method: "PUT",
+                    params: {
+                        followId: follow.id
+                    }
+                }).then(res => {
                     let result = res.data;
                     if (result.code === 200) {
                         follow.follow = true;
@@ -102,8 +105,12 @@
                 this.cancelFollow(followIds, 0, true);
             },
             cancelFollow(followIds, index, flag) {
-                axios.post('http://localhost/interactive/cancelFollow', {
-                    followIds
+                request({
+                    url: "/interactive/cancelFollow",
+                    method: "POST",
+                    data: {
+                        followIds
+                    }
                 }).then(res => {
                     let result = res.data;
                     if (result.code === 200) {
@@ -134,11 +141,11 @@
             handlerPageChange(currentPage) {
                 this.getFollowList(currentPage);
             },
-            getFollowList(page, size) {
+            getFollowList(page = 1, size = 10) {
                 this.isLoading = true;
-                page = page || 1;
-                size = size || 10;
-                axios.get('http://localhost/interactive/getFollowList', {
+                request({
+                    url: "/interactive/getFollowList",
+                    method: "GET",
                     params: {
                         page,
                         size

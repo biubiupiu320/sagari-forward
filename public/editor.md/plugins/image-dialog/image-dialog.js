@@ -45,7 +45,6 @@
                 {
                     action += "&callback=" + settings.uploadCallbackURL + "&dialog_id=editormd-image-dialog-" + guid;
                 }
-                /*src="http://localhost:8080/callback.html"*/
                 var dialogContent = ( (settings.imageUpload) ? "<form action=\"" + action +"\" target=\"" + iframeName + "\" method=\"post\" enctype=\"multipart/form-data\" class=\"" + classPrefix + "form\">" : "<div class=\"" + classPrefix + "form\">" ) +
                                         ( (settings.imageUpload) ? "<iframe name=\"" + iframeName + "\" id=\"" + iframeName + "\" guid=\"" + guid + "\"></iframe>" : "" ) +
                                         "<label>" + imageLang.url + "</label>" +
@@ -161,7 +160,7 @@
                             loading(false);
 
                             var json;
-                            uploadIframe.contentWindow.postMessage("1", "http://localhost/callback.html");
+                            uploadIframe.contentWindow.postMessage("1", "http://39.96.47.184/callback.html");
                             window.onmessage = function (ev) {
                                 json=ev.data;
                                 if(settings.crossDomainUpload)

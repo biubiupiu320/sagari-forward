@@ -41,11 +41,8 @@
 </template>
 
 <script>
-    import axios from "axios";
     import moment from "moment";
-
-    let sessionId = localStorage.getItem("xxl-sso-session-id");
-    axios.defaults.headers.common['xxl-sso-session-id'] = sessionId;
+    import {request} from "@/network/request";
 
     export default {
         name: "BanRecord",
@@ -62,7 +59,9 @@
         },
         methods: {
             getBanRecord(page = 1, size = 10) {
-                axios.get("http://localhost/user/getBanRecord", {
+                request({
+                    url: "/user/getBanRecord",
+                    method: "GET",
                     params: {
                         page,
                         size

@@ -1,7 +1,7 @@
 let client = require('scp2');
 
 client.scp('./dist', {
-    'host': '39.96.47.184',
+    'host': '47.101.139.100',
     'port': '22',
     'username': 'root',
     'password': '123123..0a',

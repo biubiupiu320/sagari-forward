@@ -157,6 +157,9 @@
                 </el-row>
             </div>
         </div>
+        <div class="no-content" v-if="comments.length === 0">
+            暂时还没有评论，快和作者交流一下吧(#^.^#)
+        </div>
         <div style="text-align: center">
             <el-pagination
                 background
@@ -174,10 +177,7 @@
 </template>
 
 <script>
-    import axios from 'axios';
-
-    let sessionId = localStorage.getItem("xxl-sso-session-id");
-    axios.defaults.headers.common['xxl-sso-session-id'] = sessionId;
+    import {request} from "@/network/request";
 
     export default {
         name: 'Comment',
@@ -187,7 +187,9 @@
                 if (this.userId === undefined || this.userId <= 0) {
                     this.userId = null;
                 }
-                axios.get("http://localhost/comment/comment/" + this.articleId, {
+                request({
+                    url: "/comment/comment/" + this.articleId,
+                    method: "GET",
                     params: {
                         userId: this.userId,
                         page: 1,
@@ -210,7 +212,6 @@
                             }
                             delete data.list;
                             this.pagination = data;
-                            console.log(this.comments)
                         }
                     }
                 }).catch(err => {
@@ -300,7 +301,9 @@
                 }
                 let comment = this.comments[index];
                 if (childIndex === undefined) {
-                    axios.get("http://localhost/interactive/good", {
+                    request({
+                        url: "/interactive/good",
+                        method: "GET",
                         params: {
                             targetId: comment.id,
                             articleId: this.articleId,
@@ -309,22 +312,22 @@
                             toUserId: comment.userId
                         }
                     }).then(res => {
-                       let result = res.data;
-                       if (result.code === 200) {
-                           comment.good = !comment.good;
-                           if (comment.good) {
-                               comment.goodCount++;
-                           } else {
-                               comment.goodCount--;
-                           }
-                       } else {
-                           this.$message({
-                               message: result.msg,
-                               type: 'error',
-                               center: true,
-                               offset: 100
-                           });
-                       }
+                        let result = res.data;
+                        if (result.code === 200) {
+                            comment.good = !comment.good;
+                            if (comment.good) {
+                                comment.goodCount++;
+                            } else {
+                                comment.goodCount--;
+                            }
+                        } else {
+                            this.$message({
+                                message: result.msg,
+                                type: 'error',
+                                center: true,
+                                offset: 100
+                            });
+                        }
                     }).catch(err => {
                         this.$message({
                             message: '服务器打了个盹，请再试一次吧',
@@ -335,7 +338,9 @@
                     });
                 } else {
                     let childComment = comment.child[childIndex];
-                    axios.get("http://localhost/interactive/good", {
+                    request({
+                        url: "/interactive/good",
+                        method: "GET",
                         params: {
                             targetId: childComment.id,
                             articleId: this.articleId,
@@ -379,14 +384,18 @@
                 } else {
                     content = comment.selfContent.substring(comment.selfContent.indexOf(comment.selfContentHead) + comment.selfContentHead.length);
                 }
-                axios.post("http://localhost/comment/comment-child", {
-                    articleId: this.articleId,
-                    authorId: this.author,
-                    content: content,
-                    fromId: this.userId,
-                    parentId: comment.id,
-                    toId: comment.toId,
-                    childId: this.childId
+                request({
+                    url: "/comment/comment-child",
+                    method: "POST",
+                    data: {
+                        articleId: this.articleId,
+                        authorId: this.author,
+                        content: content,
+                        fromId: this.userId,
+                        parentId: comment.id,
+                        toId: comment.toId,
+                        childId: this.childId
+                    }
                 }).then(res => {
                     let result = res.data;
                     if (result.code === 200) {
@@ -430,7 +439,9 @@
                 }
                 let comment = this.comments[index];
                 if (childIndex === undefined) {
-                    axios.delete('http://localhost/comment/comment-parent/' + comment.id, {
+                    request({
+                        url: "/comment/comment-parent/" + comment.id,
+                        method: "DELETE",
                         params: {
                             userId: this.userId,
                             articleId: this.articleId
@@ -463,7 +474,9 @@
                     });
                 } else {
                     let childComment = comment.child[childIndex];
-                    axios.delete('http://localhost/comment/comment-child/' + childComment.id, {
+                    request({
+                        url: "/comment/comment-child/" + childComment.id,
+                        method: "DELETE",
                         params: {
                             userId: this.userId,
                             articleId: this.articleId,
@@ -537,7 +550,9 @@
                 if (this.userId === undefined || this.userId <= 0) {
                     this.userId = null;
                 }
-                axios.get("http://localhost/comment/comment/" + this.articleId, {
+                request({
+                    url: "/comment/comment/" + this.articleId,
+                    method: "GET",
                     params: {
                         userId: this.userId,
                         page: currentPage,
@@ -580,7 +595,9 @@
                 if (this.userId === undefined || this.userId <= 0) {
                     this.userId = null;
                 }
-                axios.get("http://localhost/comment/getChildComment", {
+                request({
+                    url: "/comment/getChildComment",
+                    method: "GET",
                     params: {
                         parentId: comment.id,
                         userId: this.userId,
@@ -717,5 +734,12 @@
         display: flex;
         justify-content: center;
         align-items: center;
+    }
+
+    .no-content {
+        text-align: center;
+        padding: 15px;
+        font-size: 18px;
+        color: #999999;
     }
 </style>

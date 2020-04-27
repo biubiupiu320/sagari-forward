@@ -68,10 +68,7 @@
 
 <script>
     import FavoriteList from "@/views/uc/favorite/FavoriteList";
-    import axios from "axios";
-
-    let sessionId = localStorage.getItem("xxl-sso-session-id");
-    axios.defaults.headers.common['xxl-sso-session-id'] = sessionId;
+    import {request} from "@/network/request";
 
     export default {
         name: "Favorite",
@@ -81,7 +78,9 @@
                 if (userId === undefined || userId <= 0) {
                     return;
                 }
-                axios.get('http://localhost/collect/getFavorites', {
+                request({
+                    url: "/collect/getFavorites",
+                    method: "GET",
                     params: {
                         targetUserId: userId
                     }
@@ -148,10 +147,14 @@
             createFavorite() {
                 this.$refs['newFavorite'].validate((valid) => {
                     if (valid) {
-                        axios.put('http://localhost/collect/createFavorites', {
-                            title: this.newFavorites.title,
-                            description: this.newFavorites.description,
-                            pri: this.newFavorites.pri
+                        request({
+                            url: "/collect/createFavorites",
+                            method: "POST",
+                            data: {
+                                title: this.newFavorites.title,
+                                description: this.newFavorites.description,
+                                pri: this.newFavorites.pri
+                            }
                         }).then(res => {
                             let result = res.data;
                             if (result.code === 200) {

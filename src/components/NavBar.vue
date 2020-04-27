@@ -102,11 +102,7 @@
 </template>
 
 <script>
-    import axios from "axios";
     import {request} from "@/network/request";
-
-    let sessionId = localStorage.getItem("xxl-sso-session-id");
-    axios.defaults.headers.common['xxl-sso-session-id'] = sessionId;
 
     export default {
         name: 'NavBar',
@@ -117,7 +113,9 @@
         },
         methods: {
             querySearchAsync(queryString, cb) {
-                axios.get('http://localhost/search/searchAtBar', {
+                request({
+                    url: "/search/searchAtBar",
+                    method: "GET",
                     params: {
                         search: queryString
                     }
@@ -179,24 +177,6 @@
                         this.$store.commit("setUnreadNotice", result.data);
                     }
                 });
-                /*axios.get('http://localhost/xxl-sso-server/loginCheck').then(res => {
-                    let result = res.data;
-                    if (result.code === 200) {
-                        let userData = JSON.parse(result.data);
-                        this.$store.commit('setUser', userData);
-                        if (this.$route.path === '/sign_in' || this.$route.path === '/sign_up') {
-                            if (this.$store.getters.isLogin) {
-                                this.$router.replace('/');
-                            }
-                        }
-                    }
-                });
-                axios.get("http://localhost/notice/unreadNoticeCount").then(res => {
-                    let result = res.data;
-                    if (result.code === 200) {
-                        this.$store.commit("setUnreadNotice", result.data);
-                    }
-                });*/
             },
             logout() {
                 request({
@@ -206,6 +186,7 @@
                     let result = res.data;
                     if (result.code === 200) {
                         this.$store.commit('clearUser');
+                        localStorage.removeItem("xxl-sso-session-id");
                         this.$message({
                             message: '已成功退出登录',
                             type: "success",
@@ -224,31 +205,6 @@
                         offset: 100
                     });
                 })
-                /*let sessionId = localStorage.getItem("xxl-sso-session-id");
-                axios.get('http://localhost/xxl-sso-server/logout', {
-                    headers: { 'xxl-sso-session-id': sessionId }
-                }).then(res => {
-                    let result = res.data;
-                    if (result.code === 200) {
-                        this.$store.commit('clearUser');
-                        this.$message({
-                            message: '已成功退出登录',
-                            type: "success",
-                            center: true,
-                            offset: 100
-                        });
-                        setTimeout(() => {
-                            this.$forceUpdate();
-                        }, 1000);
-                    }
-                }).catch(error => {
-                    this.$message({
-                        message: '退出登录失败，请重试',
-                        type: "error",
-                        center: true,
-                        offset: 100
-                    });
-                });*/
             }
         },
         watch: {

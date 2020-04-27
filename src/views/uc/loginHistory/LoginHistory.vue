@@ -13,7 +13,7 @@
                             <p><span>登录方式：</span><b>{{item.type}}</b></p>
                             <p><span>浏览器：</span><b>{{item.browser}}</b></p>
                             <p><span>登录系统：</span><b>{{item.system}}</b></p>
-                            <p><span>登录设备：</span><b>{{item.device}}</b></p>
+                            <!--<p><span>登录设备：</span><b>{{item.device}}</b></p>-->
                             <p><span>登录IP：</span><b>{{item.ip}}</b></p>
                         </template>
                     </el-card>
@@ -34,6 +34,7 @@
 
 <script>
     import axios from "axios";
+    import {request} from "@/network/request";
 
     let sessionId = localStorage.getItem("xxl-sso-session-id");
     axios.defaults.headers.common['xxl-sso-session-id'] = sessionId;
@@ -53,7 +54,9 @@
         methods: {
             getHistory(page = 1, size = 10) {
                 this.isLoading = true;
-                axios.get("http://localhost/user/getSignInHistory", {
+                request({
+                    url: "/user/getSignInHistory",
+                    method: "GET",
                     params: {
                         page,
                         size

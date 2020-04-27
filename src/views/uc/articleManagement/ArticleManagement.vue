@@ -109,10 +109,7 @@
 </template>
 
 <script>
-    import axios from "axios";
-
-    let sessionId = localStorage.getItem("xxl-sso-session-id");
-    axios.defaults.headers.common['xxl-sso-session-id'] = sessionId;
+    import {request} from "@/network/request";
 
     export default {
         name: "ArticleManagement",
@@ -132,7 +129,9 @@
         methods: {
             getArticle(page = 1, size = 10, type = 1) {
                 this.isLoading = true;
-                axios.get("http://localhost/article/getArticle", {
+                request({
+                    url: "/article/getArticle",
+                    method: "GET",
                     params: {
                         page,
                         size,
@@ -154,7 +153,7 @@
                         offset: 100
                     });
                     this.isLoading = false;
-                })
+                });
             },
             handleCurrentChange(page) {
                 this.getArticle(page, 10, this.type);
@@ -176,7 +175,10 @@
             },
             delArticle(index) {
                 let id = this.articles[index].id;
-                axios.delete("http://localhost/article/article/" + id).then(res => {
+                request({
+                    url: "/article/article/" + id,
+                    method: "DELETE"
+                }).then(res => {
                     let result = res.data;
                     if (result.code === 200) {
                         this.articles.splice(index, 1);
@@ -205,7 +207,9 @@
             },
             delCompArticle(index) {
                 let id = this.articles[index].id;
-                axios.delete("http://localhost/article/deleteArticleComp", {
+                request({
+                    url: "/article/deleteArticleComp",
+                    method: "DELETE",
                     params: {
                         articleId: id
                     }

@@ -29,10 +29,7 @@
 </template>
 
 <script>
-    import axios from "axios";
-
-    let sessionId = localStorage.getItem("xxl-sso-session-id");
-    axios.defaults.headers.common['xxl-sso-session-id'] = sessionId;
+    import {request} from "@/network/request";
 
     export default {
         name: "ModifyEmail",
@@ -60,7 +57,9 @@
                 this.isLoading = true;
                 this.$refs['modifyForm'].validate((valid) => {
                     if (valid) {
-                        axios.get("http://localhost/user/modifyEmail", {
+                        request({
+                            url: "/user/modifyEmail",
+                            method: "GET",
                             params: {
                                 newEmail: this.modifyForm.newEmail,
                                 oldEmail: this.modifyForm.oldEmail

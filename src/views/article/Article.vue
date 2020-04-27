@@ -254,10 +254,8 @@
     import Comment from "@/views/article/Comment";
     import contentOpen from '@/assets/image/content-open.svg';
     import contentClose from '@/assets/image/content-close.svg';
-    import axios from 'axios';
+    import {request} from "@/network/request";
 
-    let sessionId = localStorage.getItem("xxl-sso-session-id");
-    axios.defaults.headers.common['xxl-sso-session-id'] = sessionId;
 
     export default {
         name: "Article",
@@ -265,17 +263,21 @@
             this.isLoading = true;
             window.$ = window.jQuery = $;
             this.articleId = Number(this.$route.params.articleId);
-            axios.get('http://localhost/article/article/' + this.articleId).then(res => {
+            request({
+                url: "/article/article/" + this.articleId,
+                method: "GET"
+            }).then(res => {
                 let result = res.data;
                 if (result.code === 200) {
                     this.article = result.data;
-                    axios.get('http://localhost/interactive/isFollow', {
+                    request({
+                        url: "/interactive/isFollow",
+                        method: "GET",
                         params: {
                             followId: this.article.user.id
                         }
                     }).then(res => {
                         this.follow = res.data;
-
                     });
                 } else {
                     this.$message({
@@ -288,18 +290,20 @@
                 }
             }).catch(err => {
                 this.$message({
-                    message: '获取文章信息失败，请刷新重试',
+                    message: "服务器打了个盹，请刷新重试",
                     type: 'error',
                     center: true,
                     offset: 100
                 });
                 this.isLoading = false;
-            });
+            })
             setTimeout(() => {
                 this.user = this.$store.getters.getUser;
                 this.userId = this.$store.getters.getUserId;
             }, 1000);
-            axios.get("http://localhost/search/getRelateArticle", {
+            request({
+                url: "/search/getRelateArticle",
+                method: "GET",
                 params: {
                     articleId: this.articleId
                 }
@@ -339,7 +343,9 @@
         methods: {
             clickGood() {
                 let article = this.article;
-                axios.get('http://localhost/interactive/good', {
+                request({
+                    url: "/interactive/good",
+                    method: "GET",
                     params: {
                         targetId: this.articleId,
                         articleId: this.article.id,
@@ -357,7 +363,7 @@
                         }
                     } else {
                         this.$message({
-                            message: res.msg,
+                            message: result.msg,
                             type: 'error',
                             center: true,
                             offset: 100
@@ -383,7 +389,9 @@
                     spinner: 'el-icon-loading',
                     background: 'rgba(0, 0, 0, 0.7)'
                 });
-                axios.get('http://localhost/collect/getFavorites', {
+                request({
+                    url: "/collect/getFavorites",
+                    method: "GET",
                     params: {
                         targetUserId: userId
                     }
@@ -394,7 +402,7 @@
                         this.favoritesDialogVisible = true;
                     } else {
                         this.$message({
-                            message: '获取收藏夹列表失败，请刷新重试',
+                            message: result.msg,
                             type: 'error',
                             center: true,
                             offset: 100
@@ -413,9 +421,13 @@
             },
             clickCollect() {
                 let article = this.article;
-                axios.put('http://localhost/collect/collectArticle', {
-                    articleId: article.id,
-                    favoritesId: this.favoritesId
+                request({
+                    url: "/collect/collectArticle",
+                    method: "PUT",
+                    data: {
+                        articleId: article.id,
+                        favoritesId: this.favoritesId
+                    }
                 }).then(res => {
                     let result = res.data;
                     if (result.code === 200) {
@@ -450,7 +462,13 @@
             concern() {
                 this.isFollowing = true;
                 let user = this.article.user;
-                axios.put('http://localhost/interactive/follow?followId=' + user.id).then(res => {
+                request({
+                    url: "/interactive/follow",
+                    method: "PUT",
+                    params: {
+                        followId: user.id
+                    }
+                }).then(res => {
                     let result = res.data;
                     if (result.code === 200) {
                         this.follow = true;
@@ -479,8 +497,12 @@
                 let user = this.article.user;
                 let followIds = [];
                 followIds.push(user.id);
-                axios.post('http://localhost/interactive/cancelFollow', {
-                    followIds
+                request({
+                    url: "/interactive/cancelFollow",
+                    method: "POST",
+                    data: {
+                        followIds
+                    }
                 }).then(res => {
                     let result = res.data;
                     if (result.code === 200) {
@@ -507,10 +529,14 @@
             },
             reply() {
                 this.isCommenting = true;
-                axios.post('http://localhost/comment/comment-parent', {
-                    articleId: this.articleId,
-                    content: this.content,
-                    userId: this.userId
+                request({
+                    url: "/comment/comment-parent",
+                    method: "POST",
+                    data: {
+                        articleId: this.articleId,
+                        content: this.content,
+                        userId: this.userId
+                    }
                 }).then(res => {
                     let result = res.data;
                     if (result.code === 200) {
@@ -599,7 +625,7 @@
                 }
                 setTimeout(() => {
                     this.isLoading = false;
-                }, 500);
+                }, 1000);
             }
         },
         computed: {

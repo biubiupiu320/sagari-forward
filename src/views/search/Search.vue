@@ -51,7 +51,7 @@
 </template>
 
 <script>
-    import axios from "axios";
+    import {request} from "@/network/request";
     import Article from "@/views/search/Article";
     import Tag from "@/views/search/Tag";
     import User from "@/views/search/User";
@@ -164,7 +164,9 @@
                 this.results = results;
             },
             searchArticle(page) {
-                axios.get("http://localhost/search/searchArticle", {
+                request({
+                    url: "/search/searchArticle",
+                    method: "GET",
                     params: {
                         search: this.search,
                         page,
@@ -182,7 +184,9 @@
                 });
             },
             searchArticleByTitle(page) {
-                axios.get("http://localhost/search/searchArticleByTitle", {
+                request({
+                    url: "/search/searchArticleByTitle",
+                    method: "GET",
                     params: {
                         search: this.search,
                         page,
@@ -200,7 +204,9 @@
                 });
             },
             searchArticleByContent(page) {
-                axios.get("http://localhost/search/searchArticleByContent", {
+                request({
+                    url: "/search/searchArticleByContent",
+                    method: "GET",
                     params: {
                         search: this.search,
                         page,
@@ -218,7 +224,8 @@
                 });
             },
             searchFunc(page) {
-                axios.get("http://localhost/search/search", {
+                request({
+                    url: "/search/search",
                     params: {
                         search: this.search,
                         page
@@ -231,10 +238,12 @@
                     this.isLoading = false;
                 }).catch(err => {
                     this.isLoading = false;
-                })
+                });
             },
             searchTag(page) {
-                axios.get("http://localhost/search/searchTag", {
+                request({
+                    url: "/search/searchTag",
+                    method: "GET",
                     params: {
                         search: this.search,
                         page,
@@ -251,7 +260,9 @@
                 });
             },
             searchUser(page) {
-                axios.get("http://localhost/search/searchUser", {
+                request({
+                    url: "/search/searchUser",
+                    method: "GET",
                     params: {
                         search: this.search,
                         page,

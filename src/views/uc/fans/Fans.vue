@@ -47,10 +47,7 @@
 </template>
 
 <script>
-    import axios from "axios";
-
-    let sessionId = localStorage.getItem("xxl-sso-session-id");
-    axios.defaults.headers.common['xxl-sso-session-id'] = sessionId;
+    import {request} from "@/network/request";
 
     export default {
         name: "Fans",
@@ -69,7 +66,13 @@
             follow(index) {
                 this.isFollowing = true;
                 let followId = this.fans[index].id;
-                axios.put('http://localhost/interactive/follow?followId=' + followId).then(res => {
+                request({
+                    url: "/interactive/follow?followId=",
+                    method: "PUT",
+                    params: {
+                        followId
+                    }
+                }).then(res => {
                     let result = res.data;
                     if (result.code === 200) {
                         this.fans[index].follow = true;
@@ -96,8 +99,12 @@
                 this.isFollowing = true;
                 let followIds = [];
                 followIds.push(this.fans[index].id);
-                axios.post('http://localhost/interactive/cancelFollow', {
-                    followIds
+                request({
+                    url: "/interactive/cancelFollow",
+                    method: "POST",
+                    data: {
+                        followIds
+                    }
                 }).then(res => {
                     let result = res.data;
                     if (result.code === 200) {
@@ -131,8 +138,12 @@
             },
             remove(fansIds) {
                 this.isLoading = true;
-                axios.post('http://localhost/interactive/removeFans', {
-                    fansIds
+                request({
+                    url: "/interactive/removeFans",
+                    method: "POST",
+                    data: {
+                        fansIds
+                    }
                 }).then(res => {
                     let result = res.data;
                     if (result.code === 200) {
@@ -156,14 +167,14 @@
                     this.isLoading = false;
                 });
             },
-            getFansList(page, size) {
+            getFansList(page = 1, size = 10) {
                 this.isLoading = true;
-                page = page || 1;
-                size = size || 10;
-                axios.get('http://localhost/interactive/getFansList', {
+                request({
+                    url: "/interactive/getFansList",
+                    method: "GET",
                     params: {
-                        page: 1,
-                        size: 10
+                        page,
+                        size
                     }
                 }).then(res => {
                     let result = res.data;

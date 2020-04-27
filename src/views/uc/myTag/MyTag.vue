@@ -35,16 +35,16 @@
 </template>
 
 <script>
-    import axios from "axios";
-
-    let sessionId = localStorage.getItem("xxl-sso-session-id");
-    axios.defaults.headers.common['xxl-sso-session-id'] = sessionId;
+    import {request} from "@/network/request";
 
     export default {
         name: "MyTag",
         created() {
             this.isLoading = true;
-            axios.get('http://localhost/tag/getTag').then(res => {
+            request({
+                url: "/tag/getTag",
+                method: "GET"
+            }).then(res => {
                 let result = res.data;
                 if (result.code === 200) {
                     console.log(result.data.category)
@@ -71,7 +71,13 @@
             toggleFollow(index1, index2) {
                 let tag = this.category[index1].tags[index2];
                 let tagId = tag.id;
-                axios.post('http://localhost/tag/toggleFollowTag?tagId=' + tagId).then(res => {
+                request({
+                    url: "/tag/toggleFollowTag",
+                    method: "POST",
+                    params: {
+                        tagId
+                    }
+                }).then(res => {
                     let result = res.data;
                     if (result.code === 200) {
                         tag.follow = !tag.follow;
