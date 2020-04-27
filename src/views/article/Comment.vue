@@ -5,38 +5,24 @@
                 <el-row>
                     <el-col :span="2">
                         <el-link :underline="false">
-                            <el-avatar :size="48" :src="comment.userAvatar">
+                            <el-avatar :size="48" :src="comment.user.avatar">
                                 <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png"/>
                             </el-avatar>
                         </el-link>
                     </el-col>
                     <el-col :span="17">
                         <div class="commenter-name">
-                            <el-link :underline="false" style="margin-right: 5px">{{comment.userName}}</el-link>
+                            <el-link :underline="false" style="margin-right: 5px">{{comment.user.username}}</el-link>
                             <el-tag size="mini"
                                     effect="plain"
-                                    v-if="comment.userId === articleUserId">作者</el-tag>
+                                    v-if="comment.userId === author">作者</el-tag>
                         </div>
                         <div class="comment-info">
                             <span>{{index + 1}}楼 </span>
-                            <span>{{getTime('YY-mm-dd HH:MM:SS', comment.time)}}</span>
+                            <span>{{comment.createTime | dateFrm}}</span>
                         </div>
                     </el-col>
-                    <el-col :span="3">
-                        <el-button type="text"
-                                   size="mini"
-                                   icon="el-icon-ali-good-fill"
-                                   :class="{isActive: comment.isActive === 1}"
-                                   @click="good(index)">{{comment.good}}
-                        </el-button>
-                        <el-button type="text"
-                                   size="mini"
-                                   icon="el-icon-ali-bad-fill"
-                                   :class="{isActive: comment.isActive === 2}"
-                                   @click="bad(index)">{{comment.bad}}
-                        </el-button>
-                    </el-col>
-                    <el-col :span="2">
+                    <el-col :span="5" class="comment-icon">
                         <el-button v-show="comment.isShowReplyAndDel"
                                    type="text"
                                    size="mini"
@@ -45,6 +31,12 @@
                                    type="text"
                                    size="mini"
                                    @click="del(index)">删除</el-button>
+                        <el-button type="text"
+                                   size="mini"
+                                   class="iconfont el-icon-ali-good-fill"
+                                   :class="{isActive: comment.good}"
+                                   @click="good(index)">{{comment.goodCount}}
+                        </el-button>
                     </el-col>
                 </el-row>
             </div>
@@ -55,13 +47,14 @@
                     </el-col>
                 </el-row>
             </div>
-            <el-row v-if="comment.childComments.length !== 0">
+            <el-row v-if="comment.child.length !== 0">
                 <el-col :span="22" :offset="2">
                     <div class="child-comments">
                         <div class="child-comment"
-                             v-for="(childComment, childIndex) in comment.childComments"
-                             v-if="childIndex < comment.childSize">
-                            <div class="comment-header" @mouseover="showReply(index, childIndex)"
+                             v-for="(childComment, childIndex) in comment.child"
+                             v-if="childIndex < comment.childOffset + 1">
+                            <div class="comment-header"
+                                 @mouseover="showReply(index, childIndex)"
                                  @mouseout="hideReply(index, childIndex)">
                                 <el-row>
                                     <el-col :span="2">
@@ -73,30 +66,16 @@
                                     </el-col>
                                     <el-col :span="16">
                                         <div class="commenter-name">
-                                            <el-link :underline="false" style="margin-right: 5px">{{childComment.from}}</el-link>
+                                            <el-link :underline="false" style="margin-right: 5px">{{childComment.fromUsername}}</el-link>
                                             <el-tag size="mini"
                                                     effect="plain"
-                                                    v-if="childComment.fromId === articleUserId">作者</el-tag>
+                                                    v-if="childComment.fromId === author">作者</el-tag>
                                         </div>
                                         <div class="comment-info">
-                                            <span>{{getTime('YY-mm-dd HH:MM:SS', childComment.time)}}</span>
+                                            <span>{{childComment.createTime | dateFrm}}</span>
                                         </div>
                                     </el-col>
-                                    <el-col :span="3">
-                                        <el-button type="text"
-                                                   size="mini"
-                                                   icon="el-icon-ali-good-fill"
-                                                   :class="{isActive: childComment.isActive === 1}"
-                                                   @click="good(index, childIndex)">{{childComment.good}}
-                                        </el-button>
-                                        <el-button type="text"
-                                                   size="mini"
-                                                   icon="el-icon-ali-bad-fill"
-                                                   :class="{isActive: childComment.isActive === 2}"
-                                                   @click="bad(index, childIndex)">{{childComment.bad}}
-                                        </el-button>
-                                    </el-col>
-                                    <el-col :span="3">
+                                    <el-col :span="6" class="comment-icon">
                                         <el-button v-show="childComment.isShowReplyAndDel"
                                                    type="text"
                                                    size="mini"
@@ -105,23 +84,29 @@
                                                    type="text"
                                                    size="mini"
                                                    @click="del(index, childIndex)">删除</el-button>
+                                        <el-button type="text"
+                                                   size="mini"
+                                                   class="iconfont el-icon-ali-good-fill"
+                                                   :class="{isActive: childComment.good}"
+                                                   @click="good(index, childIndex)">{{childComment.goodCount}}
+                                        </el-button>
                                     </el-col>
                                 </el-row>
                             </div>
-                            <div class="comment-body" @mouseover="showReply(index, childIndex)"
+                            <div class="comment-body"
+                                 @mouseover="showReply(index, childIndex)"
                                  @mouseout="hideReply(index, childIndex)">
                                 <el-row>
                                     <el-col :span="22" :offset="2" class="child-comment-content">
                                         <span v-if="comment.userId !== childComment.toId">
                                             回复&nbsp;
-                                            <el-popover
-                                                placement="top"
-                                                width="200"
-                                                trigger="hover">
+                                            <el-popover placement="top"
+                                                        width="200"
+                                                        trigger="hover">
                                                 <el-link slot="reference"
                                                          type="primary"
                                                          :underline="false"
-                                                         style="font-size: 16px">{{childComment.to}}</el-link>
+                                                         style="font-size: 16px">{{childComment.toUsername}}</el-link>
                                                 <div>你好啊</div>
                                             </el-popover>&nbsp;:
                                         </span>
@@ -131,7 +116,7 @@
                             </div>
                         </div>
                         <div class="child-comment load-more"
-                             v-if="comment.childComments.length > comment.childSize">
+                             v-if="comment.childTotal > comment.childOffset">
                             <el-button type="text"
                                        :loading="comment.isChildLoading"
                                        @click="loadMoreChild(index)">加载更多</el-button>
@@ -178,9 +163,9 @@
                 layout="total, prev, pager, next, jumper, ->"
                 :total="pagination.total"
                 :page-size="5"
-                :page-count="pagination.pageCount"
+                :page-count="pagination.pages"
                 :pager-count="5"
-                :current-page="pagination.currentPage"
+                :current-page="pagination.pageNum"
                 hide-on-single-page
                 @current-change="currentPage">
             </el-pagination>
@@ -189,198 +174,76 @@
 </template>
 
 <script>
+    import axios from 'axios';
+
+    let sessionId = localStorage.getItem("xxl-sso-session-id");
+    axios.defaults.headers.common['xxl-sso-session-id'] = sessionId;
+
     export default {
         name: 'Comment',
+        created() {
+            setTimeout(() => {
+                this.userId = this.$store.getters.getUserId;
+                if (this.userId === undefined || this.userId <= 0) {
+                    this.userId = null;
+                }
+                axios.get("http://localhost/comment/comment/" + this.articleId, {
+                    params: {
+                        userId: this.userId,
+                        page: 1,
+                        size: 5
+                    }
+                }).then(res => {
+                    let result = res.data;
+                    if (result.code === 200) {
+                        let data = result.data;
+                        if (data.list !== undefined) {
+                            this.comments = data.list;
+                            for (let i = 0; i < this.comments.length; i++) {
+                                this.$set(this.comments[i], "isShowReplyAndDel", false);
+                                this.$set(this.comments[i], "isChildLoading", false);
+                                this.$set(this.comments[i], "selfContent", '');
+                                this.$set(this.comments[i], "selfContentHead", '');
+                                for (let j = 0; j < this.comments[i].child.length; j++) {
+                                    this.$set(this.comments[i].child[j], "isShowReplyAndDel", false);
+                                }
+                            }
+                            delete data.list;
+                            this.pagination = data;
+                            console.log(this.comments)
+                        }
+                    }
+                }).catch(err => {
+                    this.$message({
+                        message: '获取评论失败，请刷新重试',
+                        type: 'error',
+                        center: true,
+                        offset: 100
+                    });
+                });
+            }, 1000);
+        },
         data() {
             return {
                 commentCount: 0,
-                userId: 1,
+                userId: undefined,
                 isCommenting: false,
                 orderRule: true,
-                comments: [
-                    {
-                        commentId: 1,
-                        userId: 1,
-                        userName: 'Sakura',
-                        userAvatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
-                        content: '你牛逼行了吧',
-                        isActive: 0,
-                        good: 0,
-                        bad: 0,
-                        time: 1581680000,
-                        isShowReplyAndDel: false,
-                        isShowInput: false,
-                        selfContent: '',
-                        selfContentHead: '',
-                        toId: undefined,
-                        childSize: 2,
-                        isChildLoading: false,
-                        childComments: [
-                            {
-                                commentId: 2,
-                                from: '远坂凛',
-                                fromId: 2,
-                                fromAvatar: 'https://ae01.alicdn.com/kf/Hd60a3f7c06fd47ae85624badd32ce54dv.jpg',
-                                to: 'Sakura',
-                                toId: 1,
-                                toAvatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
-                                content: '孙笑川必死',
-                                isActive: 0,
-                                good: 0,
-                                bad: 0,
-                                time: 1581680100,
-                                isShowReplyAndDel: false
-                            },
-                            {
-                                commentId: 3,
-                                from: '伊莉雅',
-                                fromId: 3,
-                                fromAvatar: 'https://ae01.alicdn.com/kf/Hf6c0b4a7428b4edf866a9fbab75568e6U.jpg',
-                                to: '远坂凛',
-                                toId: 2,
-                                toAvatar: 'https://ae01.alicdn.com/kf/Hd60a3f7c06fd47ae85624badd32ce54dv.jpg',
-                                content: '我也觉得孙笑川必死',
-                                isActive: 0,
-                                good: 0,
-                                bad: 0,
-                                time: 1581680200,
-                                isShowReplyAndDel: false
-                            },
-                            {
-                                commentId: 3,
-                                from: '伊莉雅',
-                                fromId: 3,
-                                fromAvatar: 'https://ae01.alicdn.com/kf/Hf6c0b4a7428b4edf866a9fbab75568e6U.jpg',
-                                to: '远坂凛',
-                                toId: 2,
-                                toAvatar: 'https://ae01.alicdn.com/kf/Hd60a3f7c06fd47ae85624badd32ce54dv.jpg',
-                                content: '你可拉鸡巴倒把你可',
-                                isActive: 0,
-                                good: 0,
-                                bad: 0,
-                                time: 1581680200,
-                                isShowReplyAndDel: false
-                            }
-                        ]
-                    },
-                    {
-                        commentId: 4,
-                        userId: 1,
-                        userName: 'Sakura',
-                        userAvatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
-                        content: '哈哈',
-                        isActive: 0,
-                        good: 0,
-                        bad: 0,
-                        time: 1581680300,
-                        isShowReplyAndDel: false,
-                        isShowInput: false,
-                        selfContent: '',
-                        selfContentHead: '',
-                        toId: undefined,
-                        childSize: 2,
-                        isChildLoading: false,
-                        childComments: [
-                            {
-                                commentId: 5,
-                                from: '远坂凛',
-                                fromId: 2,
-                                fromAvatar: 'https://ae01.alicdn.com/kf/Hd60a3f7c06fd47ae85624badd32ce54dv.jpg',
-                                to: 'Sakura',
-                                toId: 1,
-                                toAvatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
-                                content: '嘻嘻',
-                                isActive: 0,
-                                good: 0,
-                                bad: 0,
-                                time: 1581680400,
-                                isShowReplyAndDel: false
-                            },
-                            {
-                                commentId: 6,
-                                from: '伊莉雅',
-                                fromId: 3,
-                                fromAvatar: 'https://ae01.alicdn.com/kf/Hf6c0b4a7428b4edf866a9fbab75568e6U.jpg',
-                                to: '远坂凛',
-                                toId: 2,
-                                toAvatar: 'https://ae01.alicdn.com/kf/Hd60a3f7c06fd47ae85624badd32ce54dv.jpg',
-                                content: '嘿嘿',
-                                isActive: 0,
-                                good: 0,
-                                bad: 0,
-                                time: 1581680500,
-                                isShowReplyAndDel: false
-                            }
-                        ]
-                    },
-                    {
-                        commentId: 7,
-                        userId: 2,
-                        userName: '远坂凛',
-                        userAvatar: 'https://ae01.alicdn.com/kf/Hd60a3f7c06fd47ae85624badd32ce54dv.jpg',
-                        content: 'emiya shero',
-                        isActive: 0,
-                        good: 0,
-                        bad: 0,
-                        time: 1581690000,
-                        isShowReplyAndDel: false,
-                        isShowInput: false,
-                        selfContent: '',
-                        selfContentHead: '',
-                        toId: undefined,
-                        childSize: 2,
-                        isChildLoading: false,
-                        childComments: []
-                    },
-                    {
-                        commentId: 7,
-                        userId: 2,
-                        userName: '远坂凛',
-                        userAvatar: 'https://ae01.alicdn.com/kf/Hd60a3f7c06fd47ae85624badd32ce54dv.jpg',
-                        content: 'emiya shero',
-                        isActive: 0,
-                        good: 0,
-                        bad: 0,
-                        time: 1581690000,
-                        isShowReplyAndDel: false,
-                        isShowInput: false,
-                        selfContent: '',
-                        selfContentHead: '',
-                        toId: undefined,
-                        childSize: 2,
-                        isChildLoading: false,
-                        childComments: []
-                    },
-                    {
-                        commentId: 7,
-                        userId: 2,
-                        userName: '远坂凛',
-                        userAvatar: 'https://ae01.alicdn.com/kf/Hd60a3f7c06fd47ae85624badd32ce54dv.jpg',
-                        content: 'emiya shero',
-                        isActive: 0,
-                        good: 0,
-                        bad: 0,
-                        time: 1581690000,
-                        isShowReplyAndDel: false,
-                        isShowInput: false,
-                        selfContent: '',
-                        selfContentHead: '',
-                        toId: undefined,
-                        childSize: 2,
-                        isChildLoading: false,
-                        childComments: []
-                    }
-                ],
+                comments: [],
                 back: [],
-                pagination: {
-                    total: 6,
-                    pageCount: 1,
-                    currentPage: 1
-                }
+                pagination: {},
+                childId: null
             }
         },
         props: {
-            articleUserId: String|Number
+            author: {
+                type: Number,
+                default: 0
+            },
+            articleId: {
+                type: Number,
+                default: 0
+            }
         },
         mounted() {
             this.commentCount = this.getCommentCount();
@@ -391,7 +254,7 @@
                 if (childIndex === undefined) {
                     comment.isShowReplyAndDel = true;
                 } else {
-                    let childComment = comment.childComments[childIndex];
+                    let childComment = comment.child[childIndex];
                     childComment.isShowReplyAndDel = true;
                 }
             },
@@ -400,7 +263,7 @@
                 if (childIndex === undefined) {
                     comment.isShowReplyAndDel = false;
                 } else {
-                    let childComment = comment.childComments[childIndex];
+                    let childComment = comment.child[childIndex];
                     childComment.isShowReplyAndDel = false;
                 }
             },
@@ -409,11 +272,13 @@
                 comment.isShowInput = true;
                 comment.toId = comment.userId;
                 if (childIndex !== undefined) {
-                    let childComment = comment.childComments[childIndex];
+                    let childComment = comment.child[childIndex];
                     comment.toId = childComment.fromId;
-                    comment.selfContentHead = '回复 ' + childComment.from + ' : ';
+                    comment.selfContentHead = '回复 ' + childComment.fromUsername + ' : ';
                     comment.selfContent = comment.selfContentHead;
+                    this.childId = childComment.id;
                 }
+
             },
             hideInput(index) {
                 let comment = this.comments[index];
@@ -421,169 +286,236 @@
                 comment.toId = undefined;
                 comment.selfContent = '';
                 comment.selfContentHead = '';
+                this.childId = null;
             },
             good(index, childIndex) {
-                let comment = this.comments[index];
-                if (childIndex === undefined) {
-                    if (comment.isActive === 1) {
-                        comment.isActive = 0;
-                        comment.good--;
-                    } else if (comment.isActive === 0) {
-                        comment.isActive = 1;
-                        comment.good++;
-                    } else {
-                        comment.isActive = 1;
-                        comment.bad--;
-                        comment.good++;
-                    }
-                } else {
-                    let childComment = comment.childComments[childIndex];
-                    if (childComment.isActive === 1) {
-                        childComment.isActive = 0;
-                        childComment.good--;
-                    } else if (childComment.isActive === 0) {
-                        childComment.isActive = 1;
-                        childComment.good++;
-                    } else {
-                        childComment.isActive = 1;
-                        childComment.bad--;
-                        childComment.good++;
-                    }
+                if (this.userId === undefined || this.userId === null || this.userId <= 0) {
+                    this.$message({
+                        message: '您需要登录之后才能点赞',
+                        type: 'error',
+                        center: true,
+                        offset: 100,
+                    });
+                    return;
                 }
-            },
-            bad(index, childIndex) {
                 let comment = this.comments[index];
                 if (childIndex === undefined) {
-                    if (comment.isActive === 2) {
-                        comment.isActive = 0;
-                        comment.bad--;
-                    } else if (comment.isActive === 0) {
-                        comment.isActive = 2;
-                        comment.bad++;
-                    } else {
-                        comment.isActive = 2;
-                        comment.good--;
-                        comment.bad++;
-                    }
+                    axios.get("http://localhost/interactive/good", {
+                        params: {
+                            targetId: comment.id,
+                            articleId: this.articleId,
+                            type: 2,
+                            author: this.author,
+                            toUserId: comment.userId
+                        }
+                    }).then(res => {
+                       let result = res.data;
+                       if (result.code === 200) {
+                           comment.good = !comment.good;
+                           if (comment.good) {
+                               comment.goodCount++;
+                           } else {
+                               comment.goodCount--;
+                           }
+                       } else {
+                           this.$message({
+                               message: result.msg,
+                               type: 'error',
+                               center: true,
+                               offset: 100
+                           });
+                       }
+                    }).catch(err => {
+                        this.$message({
+                            message: '服务器打了个盹，请再试一次吧',
+                            type: 'error',
+                            center: true,
+                            offset: 100
+                        });
+                    });
                 } else {
-                    let childComment = comment.childComments[childIndex];
-                    if (childComment.isActive === 2) {
-                        childComment.isActive = 0;
-                        childComment.bad--;
-                    } else if (childComment.isActive === 0) {
-                        childComment.isActive = 2;
-                        childComment.bad++;
-                    } else {
-                        childComment.isActive = 2;
-                        childComment.good--;
-                        childComment.bad++;
-                    }
+                    let childComment = comment.child[childIndex];
+                    axios.get("http://localhost/interactive/good", {
+                        params: {
+                            targetId: childComment.id,
+                            articleId: this.articleId,
+                            type: 3,
+                            author: this.author,
+                            toUserId: childComment.fromId
+                        }
+                    }).then(res => {
+                        let result = res.data;
+                        if (result.code === 200) {
+                            childComment.good = !childComment.good;
+                            if (childComment.good) {
+                                childComment.goodCount++;
+                            } else {
+                                childComment.goodCount--;
+                            }
+                        } else {
+                            this.$message({
+                                message: result.msg,
+                                type: 'error',
+                                center: true,
+                                offset: 100
+                            });
+                        }
+                    }).catch(err => {
+                        this.$message({
+                            message: '服务器打了个盹，请再试一次吧',
+                            type: 'error',
+                            center: true,
+                            offset: 100
+                        });
+                    });
                 }
             },
             reply(index) {
                 this.isCommenting = true;
                 let comment = this.comments[index];
-                let child = {};
-                child.commentId = ++this.commentCount;
-                if (this.userId === 1) {
-                    child.from = 'Sakura';
-                    child.fromId = this.userId;
-                    child.fromAvatar = 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png';
-                } else if (this.userId === 2) {
-                    child.from = '远坂凛';
-                    child.fromId = this.userId;
-                    child.fromAvatar = 'https://ae01.alicdn.com/kf/Hd60a3f7c06fd47ae85624badd32ce54dv.jpg';
-                } else if (this.userId === 3) {
-                    child.from = '伊莉雅';
-                    child.fromId = this.userId;
-                    child.fromAvatar = 'https://ae01.alicdn.com/kf/Hf6c0b4a7428b4edf866a9fbab75568e6U.jpg';
-                }
-                if (comment.toId === 1) {
-                    child.to = 'Sakura';
-                    child.toId = comment.toId;
-                    child.toAvatar = 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png';
-                } else if (comment.toId === 2) {
-                    child.to = '远坂凛';
-                    child.toId = comment.toId;
-                    child.toAvatar = 'https://ae01.alicdn.com/kf/Hd60a3f7c06fd47ae85624badd32ce54dv.jpg';
-                } else if (comment.toId === 3) {
-                    child.to = '伊莉雅';
-                    child.toId = comment.toId;
-                    child.toAvatar = 'https://ae01.alicdn.com/kf/Hf6c0b4a7428b4edf866a9fbab75568e6U.jpg';
-                }
-                child.isActive = 0;
-                child.good = 0;
-                child.bad = 0;
-                child.isShowReplyAndDel = false;
-                child.time = new Date().getTime() / 1000;
+                let content = '';
                 if (comment.selfContentHead === '') {
-                    child.content = comment.selfContent;
+                    content = comment.selfContent;
                 } else {
-                    child.content = comment.selfContent.substring(comment.selfContent.indexOf(comment.selfContentHead) + comment.selfContentHead.length);
+                    content = comment.selfContent.substring(comment.selfContent.indexOf(comment.selfContentHead) + comment.selfContentHead.length);
                 }
-                setTimeout(() => {
-                    comment.childComments.push(child);
-                    this.isCommenting = false;
-                    comment.selfContent = '';
-                    comment.selfContentHead = '';
-                    comment.isShowInput = false;
-                    let parent = this.$parent.$parent.$parent.$parent.$parent;
-                    parent.article.commentCount = this.commentCount;
-                }, 1000);
+                axios.post("http://localhost/comment/comment-child", {
+                    articleId: this.articleId,
+                    authorId: this.author,
+                    content: content,
+                    fromId: this.userId,
+                    parentId: comment.id,
+                    toId: comment.toId,
+                    childId: this.childId
+                }).then(res => {
+                    let result = res.data;
+                    if (result.code === 200) {
+                        this.$message({
+                            message: '评论成功',
+                            type: 'success',
+                            center: true,
+                            offset: 100
+                        });
+                        comment.selfContent = '';
+                        comment.selfContentHead = '';
+                        comment.isShowInput = false;
+                        //comment.child.push(result.data);
+                        this.isCommenting = false;
+                    } else {
+                        this.$alert(result.msg, '评论失败', {
+                            confirmButtonText: '确定',
+                            callback: action => {
+                                this.isCommenting = false;
+                            }
+                        });
+                    }
+                }).catch(err => {
+                    this.$alert('评论未发表成功', '评论失败', {
+                        confirmButtonText: '确定',
+                        callback: action => {
+                            this.isCommenting = false;
+                        }
+                    });
+                });
             },
             del(index, childIndex) {
+                if (this.userId === undefined || this.userId === null || this.userId <= 0) {
+                    this.$message({
+                        message: '您需要登录之后才能删除评论',
+                        type: 'error',
+                        center: true,
+                        offset: 100
+                    });
+                    return;
+                }
+                let comment = this.comments[index];
                 if (childIndex === undefined) {
-                    this.comments.splice(index, 1);
+                    axios.delete('http://localhost/comment/comment-parent/' + comment.id, {
+                        params: {
+                            userId: this.userId,
+                            articleId: this.articleId
+                        }
+                    }).then(res => {
+                        let result = res.data;
+                        if (result.code === 200) {
+                            this.$message({
+                                message: '删除评论成功',
+                                type: 'error',
+                                center: true,
+                                offset: 100
+                            });
+                            this.comments.splice(index, 1);
+                        } else {
+                            this.$message({
+                                message: result.msg,
+                                type: 'error',
+                                center: true,
+                                offset: 100
+                            });
+                        }
+                    }).catch(err => {
+                        this.$message({
+                            message: '删除评论失败，请再试一次吧',
+                            type: 'error',
+                            center: true,
+                            offset: 100
+                        });
+                    });
                 } else {
-                    this.comments[index].childComments.splice(childIndex, 1);
+                    let childComment = comment.child[childIndex];
+                    axios.delete('http://localhost/comment/comment-child/' + childComment.id, {
+                        params: {
+                            userId: this.userId,
+                            articleId: this.articleId,
+                            parentId: childComment.parentId
+                        }
+                    }).then(res => {
+                        let result = res.data;
+                        if (result.code === 200) {
+                            this.$message({
+                                message: '删除评论成功',
+                                type: 'error',
+                                center: true,
+                                offset: 100
+                            });
+                            this.comments[index].child.splice(childIndex, 1);
+                        } else {
+                            this.$message({
+                                message: result.msg,
+                                type: 'error',
+                                center: true,
+                                offset: 100
+                            });
+                        }
+                    }).catch(err => {
+                        this.$message({
+                            message: '删除评论失败，请再试一次吧',
+                            type: 'error',
+                            center: true,
+                            offset: 100
+                        });
+                    });
                 }
             },
             preContent(index, childIndex) {
                 let comment = this.comments[index];
-                let childComment = comment.childComments[childIndex];
+                let childComment = comment.child[childIndex];
                 return childComment.content;
-                /*if (comment.userId === childComment.toId) {
-                    return childComment.content;
-                } else {
-                    return '回复 <el-link :underfalse="false" href="http://www.baidu.com">' +
-                        childComment.to + '</el-link> : ' + childComment.content;
-                    /!*return '回复 ' + childComment.to + ' : ' + childComment.content;*!/
-                }*/
             },
             getCommentCount() {
                 let count = this.comments.length;
                 for (let comment of this.comments) {
-                    count += comment.childComments.length;
+                    count += comment.child.length;
                 }
                 this.$emit('getCommentCount', count);
                 return count;
-            },
-            getTime(fmt, date) {
-                date = new Date(date * 1000);
-                let ret;
-                let opt = {
-                    'Y+': date.getFullYear().toString(),        // 年
-                    'm+': (date.getMonth() + 1).toString(),     // 月
-                    'd+': date.getDate().toString(),            // 日
-                    'H+': date.getHours().toString(),           // 时
-                    'M+': date.getMinutes().toString(),         // 分
-                    'S+': date.getSeconds().toString()          // 秒
-                    // 有其他格式化字符需求可以继续添加，必须转化成字符串
-                };
-                for (let k in opt) {
-                    ret = new RegExp('(' + k + ')').exec(fmt);
-                    if (ret) {
-                        fmt = fmt.replace(ret[1], (ret[1].length == 1) ? (opt[k]) : (opt[k].padStart(ret[1].length, '0')))
-                    }
-                }
-                return fmt;
             },
             order(flag) {
                 if (this.orderRule !== flag) {
                     this.orderRule = flag;
                     this.comments = this.comments.reverse();
                     for (let comment of this.comments) {
-                        comment.childComments = comment.childComments.reverse();
+                        comment.child = comment.child.reverse();
                     }
                 }
             },
@@ -592,7 +524,7 @@
                     this.back = this.comments.slice();
                     let comments = this.comments;
                     for (let i = 0; i < comments.length; i++) {
-                        if (this.articleUserId !== comments[i].userId) {
+                        if (this.author !== comments[i].userId) {
                             comments.splice(i, 1);
                             i--;
                         }
@@ -602,183 +534,88 @@
                 }
             },
             currentPage(currentPage) {
-                if (currentPage === 1) {
-                    this.comments = [
-                        {
-                            commentId: 1,
-                            userId: 1,
-                            userName: 'Sakura',
-                            userAvatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
-                            content: '你牛逼行了吧',
-                            isActive: 0,
-                            good: 0,
-                            bad: 0,
-                            time: 1581680000,
-                            isShowReplyAndDel: false,
-                            isShowInput: false,
-                            selfContent: '',
-                            selfContentHead: '',
-                            toId: undefined,
-                            childComments: [
-                                {
-                                    commentId: 2,
-                                    from: '远坂凛',
-                                    fromId: 2,
-                                    fromAvatar: 'https://ae01.alicdn.com/kf/Hd60a3f7c06fd47ae85624badd32ce54dv.jpg',
-                                    to: 'Sakura',
-                                    toId: 1,
-                                    toAvatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
-                                    content: '孙笑川必死',
-                                    isActive: 0,
-                                    good: 0,
-                                    bad: 0,
-                                    time: 1581680100,
-                                    isShowReplyAndDel: false
-                                },
-                                {
-                                    commentId: 3,
-                                    from: '伊莉雅',
-                                    fromId: 3,
-                                    fromAvatar: 'https://ae01.alicdn.com/kf/Hf6c0b4a7428b4edf866a9fbab75568e6U.jpg',
-                                    to: '远坂凛',
-                                    toId: 2,
-                                    toAvatar: 'https://ae01.alicdn.com/kf/Hd60a3f7c06fd47ae85624badd32ce54dv.jpg',
-                                    content: '我也觉得孙笑川必死',
-                                    isActive: 0,
-                                    good: 0,
-                                    bad: 0,
-                                    time: 1581680200,
-                                    isShowReplyAndDel: false
-                                }
-                            ]
-                        },
-                        {
-                            commentId: 4,
-                            userId: 1,
-                            userName: 'Sakura',
-                            userAvatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
-                            content: '哈哈',
-                            isActive: 0,
-                            good: 0,
-                            bad: 0,
-                            time: 1581680300,
-                            isShowReplyAndDel: false,
-                            isShowInput: false,
-                            selfContent: '',
-                            selfContentHead: '',
-                            toId: undefined,
-                            childComments: [
-                                {
-                                    commentId: 5,
-                                    from: '远坂凛',
-                                    fromId: 2,
-                                    fromAvatar: 'https://ae01.alicdn.com/kf/Hd60a3f7c06fd47ae85624badd32ce54dv.jpg',
-                                    to: 'Sakura',
-                                    toId: 1,
-                                    toAvatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
-                                    content: '嘻嘻',
-                                    isActive: 0,
-                                    good: 0,
-                                    bad: 0,
-                                    time: 1581680400,
-                                    isShowReplyAndDel: false
-                                },
-                                {
-                                    commentId: 6,
-                                    from: '伊莉雅',
-                                    fromId: 3,
-                                    fromAvatar: 'https://ae01.alicdn.com/kf/Hf6c0b4a7428b4edf866a9fbab75568e6U.jpg',
-                                    to: '远坂凛',
-                                    toId: 2,
-                                    toAvatar: 'https://ae01.alicdn.com/kf/Hd60a3f7c06fd47ae85624badd32ce54dv.jpg',
-                                    content: '嘿嘿',
-                                    isActive: 0,
-                                    good: 0,
-                                    bad: 0,
-                                    time: 1581680500,
-                                    isShowReplyAndDel: false
-                                }
-                            ]
-                        },
-                        {
-                            commentId: 7,
-                            userId: 2,
-                            userName: '远坂凛',
-                            userAvatar: 'https://ae01.alicdn.com/kf/Hd60a3f7c06fd47ae85624badd32ce54dv.jpg',
-                            content: 'emiya shero',
-                            isActive: 0,
-                            good: 0,
-                            bad: 0,
-                            time: 1581690000,
-                            isShowReplyAndDel: false,
-                            isShowInput: false,
-                            selfContent: '',
-                            selfContentHead: '',
-                            toId: undefined,
-                            childComments: []
-                        },
-                        {
-                            commentId: 7,
-                            userId: 2,
-                            userName: '远坂凛',
-                            userAvatar: 'https://ae01.alicdn.com/kf/Hd60a3f7c06fd47ae85624badd32ce54dv.jpg',
-                            content: 'emiya shero',
-                            isActive: 0,
-                            good: 0,
-                            bad: 0,
-                            time: 1581690000,
-                            isShowReplyAndDel: false,
-                            isShowInput: false,
-                            selfContent: '',
-                            selfContentHead: '',
-                            toId: undefined,
-                            childComments: []
-                        },
-                        {
-                            commentId: 7,
-                            userId: 2,
-                            userName: '远坂凛',
-                            userAvatar: 'https://ae01.alicdn.com/kf/Hd60a3f7c06fd47ae85624badd32ce54dv.jpg',
-                            content: 'emiya shero',
-                            isActive: 0,
-                            good: 0,
-                            bad: 0,
-                            time: 1581690000,
-                            isShowReplyAndDel: false,
-                            isShowInput: false,
-                            selfContent: '',
-                            selfContentHead: '',
-                            toId: undefined,
-                            childComments: []
-                        }
-                    ];
-                } else if (currentPage === 2) {
-                    this.comments = [{
-                        commentId: 7,
-                        userId: 2,
-                        userName: '远坂凛',
-                        userAvatar: 'https://ae01.alicdn.com/kf/Hd60a3f7c06fd47ae85624badd32ce54dv.jpg',
-                        content: 'emiya shero',
-                        isActive: 0,
-                        good: 0,
-                        bad: 0,
-                        time: 1581690000,
-                        isShowReplyAndDel: false,
-                        isShowInput: false,
-                        selfContent: '',
-                        selfContentHead: '',
-                        toId: undefined,
-                        childComments: []
-                    }]
+                if (this.userId === undefined || this.userId <= 0) {
+                    this.userId = null;
                 }
+                axios.get("http://localhost/comment/comment/" + this.articleId, {
+                    params: {
+                        userId: this.userId,
+                        page: currentPage,
+                        size: 5
+                    }
+                }).then(res => {
+                    let result = res.data;
+                    if (result.code === 200) {
+                        let data = result.data;
+                        this.comments = data.list;
+                        for (let i = 0; i < this.comments.length; i++) {
+                            this.$set(this.comments[i], "isShowReplyAndDel", false);
+                            this.$set(this.comments[i], "isChildLoading", false);
+                            this.$set(this.comments[i], "childSize", 2);
+                            this.$set(this.comments[i], "selfContent", '');
+                            this.$set(this.comments[i], "selfContentHead", '');
+                            for (let j = 0; j < this.comments[i].child.length; j++) {
+                                this.$set(this.comments[i].child[j], "isShowReplyAndDel", false);
+                            }
+                        }
+                        delete data.list;
+                        this.pagination = data;
+                    }
+                }).catch(err => {
+                    this.$message({
+                        message: '获取评论失败，请刷新重试',
+                        type: 'error',
+                        center: true,
+                        offset: 100
+                    });
+                });
             },
             loadMoreChild(index) {
                 let comment = this.comments[index];
                 comment.isChildLoading = true;
-                setTimeout(() => {
-                    comment.childSize += 5;
+                let limit = 5;
+                if (comment.childOffset + limit - 1 > comment.childTotal) {
+                    limit = comment.childTotal - comment.childOffset + 1;
+                }
+                if (this.userId === undefined || this.userId <= 0) {
+                    this.userId = null;
+                }
+                axios.get("http://localhost/comment/getChildComment", {
+                    params: {
+                        parentId: comment.id,
+                        userId: this.userId,
+                        offset: comment.childOffset,
+                        limit: limit
+                    }
+                }).then(res => {
+                    let result = res.data;
+                    if (result.code === 200) {
+                        let data = result.data;
+                        comment.childOffset = data.offset;
+                        comment.childTotal = data.total;
+                        for (let i = 0; i < data.child.length; i++) {
+                            this.$set(data.child[i], "isShowReplyAndDel", false);
+                        }
+                        this.comments[index].child = comment.child.concat(data.child);
+                        comment.isChildLoading = false;
+                    } else {
+                        this.$message({
+                            message: result.msg,
+                            type: 'error',
+                            center: true,
+                            offset: 100
+                        });
+                        comment.isChildLoading = false;
+                    }
+                }).catch(err => {
+                    this.$message({
+                        message: '获取评论失败，再试一次吧',
+                        type: 'error',
+                        center: true,
+                        offset: 100
+                    });
                     comment.isChildLoading = false;
-                }, 1000);
+                });
             }
         },
         computed: {}
@@ -834,6 +671,15 @@
         word-break: break-word;
     }
 
+    .comment-icon .el-icon-ali-good-fill {
+        font-size: 12px !important;
+    }
+
+    .comment-icon {
+        text-align: right;
+        padding-right: 20px;
+    }
+
     .comment .el-divider {
         margin-top: 10px;
         margin-bottom: 10px;
@@ -861,6 +707,10 @@
     .child-comments .child-comment:not(:last-child) .child-comment-content {
         padding-bottom: 10px;
         border-bottom: 1px solid #DCDFE6;
+    }
+
+    .child-comment-content .el-link {
+        vertical-align: bottom;
     }
 
     .load-more {

@@ -1,5 +1,5 @@
 <template>
-    <div class="profile">
+    <div class="profile" v-loading="isLoading">
         <div class="profile-header">
             <h3>个人资料</h3>
         </div>
@@ -7,41 +7,40 @@
             <el-row>
                 <el-col :span="3">
                     <div class="avatar">
-                        <el-avatar :size="100"
-                                   src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png">
+                        <el-avatar :size="100" :src="formData.avatar">
                             <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png"/>
                         </el-avatar>
-                        <el-button type="text">修改头像</el-button>
+                        <el-upload action="http://localhost/file/upload"
+                                   :data="{type: 1}"
+                                   :show-file-list="false"
+                                   :on-success="handleAvatarSuccess"
+                                   :before-upload="beforeAvatarUpload">
+                            <el-button type="text">修改头像</el-button>
+                        </el-upload>
                     </div>
                 </el-col>
                 <el-col :span="21">
                     <div class="user-info">
                         <div class="user-info-header">
-                            <div class="user-id">
-                                ID：qq_40378165
-                            </div>
+                            <div class="user-id">ID：{{formData.id}}</div>
                             <div class="user-heat">
-                                <span>关注&nbsp;3</span>
+                                <span>关注&nbsp;{{formData.followCount}}</span>
                                 <el-divider direction="vertical"></el-divider>
-                                <span>粉丝&nbsp;0</span>
+                                <span>粉丝&nbsp;{{formData.fansCount}}</span>
                             </div>
                             <div class="tip-words">
-                                <div class="sagari-user">您于2019年12月28日加入了Sagari社区</div>
-                                <div class="sagari-user">Sagari已经陪伴您共同成长100天，期待更好的你</div>
+                                <div class="sagari-user">您于{{formData.createTime | formatDate}}加入了Sagari社区</div>
+                                <div class="sagari-user">Sagari已经陪伴您共同成长{{duration}}天，期待更好的你</div>
                             </div>
                         </div>
                         <div class="user-info-body" v-show="!modify">
                             <ul>
                                 <li>
-                                    <span>昵称：</span>
-                                    <span>{{formData.nick}}</span>
+                                    <span>用户名：</span>
+                                    <span>{{formData.username}}</span>
                                     <span style="float:right;">
                                         <el-button type="text" @click="modify = true">修改资料</el-button>
                                     </span>
-                                </li>
-                                <li>
-                                    <span>姓名：</span>
-                                    <span>{{formData.name}}</span>
                                 </li>
                                 <li>
                                     <span>性别：</span>
@@ -49,7 +48,7 @@
                                 </li>
                                 <li>
                                     <span>生日：</span>
-                                    <span>{{formData.birth}}</span>
+                                    <span>{{formData.birth | formatDate}}</span>
                                 </li>
                                 <li>
                                     <span>职位：</span>
@@ -63,10 +62,6 @@
                                     <span>学校：</span>
                                     <span>{{formData.school}}</span>
                                 </li>
-                                <li>
-                                    <span>开始工作时间：</span>
-                                    <span>{{formData.swDate}}</span>
-                                </li>
                                 <li class="intro">
                                     <span>简介：</span>
                                     <span style="width: 90%">{{formData.introduction}}</span>
@@ -75,12 +70,9 @@
                         </div>
                         <div class="user-info-body" v-show="modify">
                             <el-form label-position="right" label-width="120px" ref="formData" :model="formData">
-                                <el-form-item label="昵称：" prop="nick" style="margin-top: 16px">
-                                    <el-input size="small" v-model="formData.nick"></el-input>
+                                <el-form-item label="用户名：" prop="nick" style="margin-top: 16px">
+                                    <el-input size="small" v-model="formData.username"></el-input>
                                     <span style="margin-left: 10px">一个月只能修改一次</span>
-                                </el-form-item>
-                                <el-form-item label="姓名：" prop="name">
-                                    <el-input size="small" v-model="formData.name"></el-input>
                                 </el-form-item>
                                 <el-form-item label="性别：" prop="gender">
                                     <el-radio-group v-model="formData.gender">
@@ -95,7 +87,7 @@
                                         placeholder="选择日期"
                                         :picker-options="pickerOptions"
                                         format="yyyy - MM - dd"
-                                        value-format="timestamp"
+                                        value-format="yyyy-MM-dd"
                                         v-model="formData.birth"
                                         :default-value="new Date()"
                                         :editable="false">
@@ -130,19 +122,6 @@
                                         </el-option>
                                     </el-select>
                                 </el-form-item>
-                                <el-form-item label="开始工作时间：" prop="swDate">
-                                    <el-date-picker
-                                        size="small"
-                                        type="date"
-                                        placeholder="选择日期"
-                                        v-model="formData.swDate"
-                                        :default-value="new Date()"
-                                        :picker-options="pickerOptions"
-                                        format="yyyy - MM - dd"
-                                        value-format="timestamp"
-                                        :editable="false">
-                                    </el-date-picker>
-                                </el-form-item>
                                 <el-form-item label="简介：" prop="introduction">
                                     <el-input type="textarea"
                                               :rows="6"
@@ -166,8 +145,39 @@
 </template>
 
 <script>
+    import axios from "axios";
+    import moment from "moment";
+
+    let sessionId = localStorage.getItem("xxl-sso-session-id");
+    axios.defaults.headers.common['xxl-sso-session-id'] = sessionId;
+
     export default {
         name: "Profile",
+        created() {
+            this.isLoading = true;
+            axios.get('http://localhost/user/getUserAll').then(res => {
+                let result = res.data;
+                if (result.code === 200) {
+                    this.formData = result.data;
+                } else {
+                    this.$message({
+                        message: result.msg,
+                        type: 'error',
+                        center: true,
+                        offset: 100
+                    });
+                }
+                this.isLoading = false;
+            }).catch(err => {
+                this.$message({
+                    message: '服务器打了个盹，请刷新重试',
+                    type: 'error',
+                    center: true,
+                    offset: 100
+                });
+                this.isLoading = false;
+            });
+        },
         data() {
             return {
                 pickerOptions: {
@@ -176,16 +186,14 @@
                     }
                 },
                 formData: {
-                    nick: '',
-                    name: '',
+                    username: '',
                     gender: '',
-                    birth: undefined,
+                    birth: null,
                     office: '',
                     company: '',
                     education: '',
                     school: '',
                     profession: '',
-                    swDate: undefined,     //start work time
                     introduction: '',
                 },
                 education: [
@@ -392,23 +400,140 @@
                         label: '国防/军队'
                     }
                 ],
-                modify: false
+                modify: false,
+                isLoading: false
             }
         },
         methods: {
             modifyProfile() {
-                this.modify = false;
-                console.log(this.formData);
+                this.isLoading = true;
+                axios.post('http://localhost/user/modifyUser', {
+                    username: this.formData.username,
+                    gender: this.formData.gender,
+                    birth: this.formData.birth,
+                    office: this.formData.office,
+                    company: this.formData.company,
+                    education: this.formData.education,
+                    school: this.formData.school,
+                    profession: this.formData.profession,
+                    introduction: this.formData.introduction
+                }).then(res => {
+                    let result = res.data;
+                    if (result.code === 200) {
+                        this.$message({
+                            message: result.msg,
+                            type: 'success',
+                            center: true,
+                            offset: 100
+                        });
+                        this.modify = false;
+                    } else {
+                        this.$message({
+                            message: result.msg,
+                            type: 'error',
+                            center: true,
+                            offset: 100
+                        });
+                    }
+                    this.isLoading = false;
+                }).catch(err => {
+                    this.$message({
+                        message: '服务器打了个盹，请再试一次吧',
+                        type: 'error',
+                        center: true,
+                        offset: 100
+                    });
+                    this.isLoading = false;
+                });
             },
             cancelModify() {
                 this.$refs['formData'].resetFields();
                 this.modify = false;
+            },
+            handleAvatarSuccess(res, file) {
+                if (res.code === 200) {
+                    this.formData.avatar = res.data.url;
+                    axios.get("http://localhost/user/modifyAvatar", {
+                        params: {
+                            avatar: this.formData.avatar
+                        }
+                    }).then(res => {
+                        let result = res.data;
+                        if (result.code === 200) {
+                            this.$message({
+                                message: "修改头像成功",
+                                type: "success",
+                                center: true,
+                                offset: 100
+                            });
+                        } else {
+                            this.$message({
+                                message: result.msg,
+                                type: "error",
+                                center: true,
+                                offset: 100
+                            });
+                        }
+                    }).catch(err => {
+                        this.$message({
+                            message: "修改头像失败，请重试",
+                            type: "error",
+                            center: true,
+                            offset: 100
+                        });
+                    })
+                } else {
+                    this.$message({
+                        message: '上传头像失败，请重试',
+                        type: 'error',
+                        center: true,
+                        offset: 100
+                    });
+                }
+            },
+            beforeAvatarUpload(file) {
+                const isImage = file.type === 'image/jpeg' ||
+                    file.type === 'image/png' ||
+                    file.type === 'image/bmp';
+                const isLt2M = file.size / 1024 / 1024 < 2;
+
+                if (!isImage) {
+                    this.$message({
+                        message: '上传头像图片只能是 JPG、PNG或PNG 格式!',
+                        type: "error",
+                        center: true,
+                        offset: 100
+                    });
+                }
+                if (!isLt2M) {
+                    this.$message({
+                        message: '上传头像图片大小不能超过 2MB!',
+                        type: "error",
+                        center: true,
+                        offset: 100
+                    });
+                }
+                return isImage && isLt2M;
+            }
+        },
+        filters: {
+            formatDate(value) {
+                return moment(value).format('LL');
+            }
+        },
+        computed: {
+            duration() {
+                return moment().diff(this.formData.createTime, 'days');
             }
         }
     }
 </script>
 
 <style scoped>
+    .profile {
+        padding-bottom: 30px;
+    }
+
     .profile-header h3 {
         font-size: 20px;
         color: #3d3d3d;
@@ -429,9 +554,6 @@
 
     .user-info {
         padding-left: 15px;
-    }
-
-    .user-info-header {
     }
 
     .user-id {

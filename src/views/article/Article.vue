@@ -1,11 +1,17 @@
 <template>
-    <el-row style="padding-top: 10px; background-color: #F9F9F9;">
-        <el-col :span="14" :offset="5">
+    <el-row style="padding-top: 10px" v-loading="isLoading">
+        <el-col :span="20" :offset="2"> <!-- :offset="5"-->
             <el-row :gutter="10">
-                <el-col :span="18">
+                <el-col :span="4"><!--style="transform: scale3d(1, 1, 1);"-->
+                    <div class="table-of-content">
+                        <div class="table-header">目录</div>
+                        <div id="table-of-content" :style="{width: width + 'px'}"></div>
+                    </div>
+                </el-col>
+                <el-col :span="15" :offset="4"> <!--:offset=4-->
                     <div class="article">
                         <div class="article-title">
-                            {{article.articleTitle}}
+                            {{article.title}}
                         </div>
                         <div class="article-info">
                             <el-collapse>
@@ -15,24 +21,30 @@
                                                  :underline="false"
                                                  class="article-author-name"
                                                  href="https://www.baidu.com">
-                                            {{article.user.name}}
+                                            {{article.user.username}}
                                         </el-link>
-                                        <el-tooltip effect="dark" :content="'发布于'+article.time" placement="bottom">
-                                            <span class="article-time">最后发布于{{article.time}}</span>
+                                        <el-tooltip effect="dark"
+                                                    placement="bottom">
+                                            <template v-slot:content>
+                                                发布于 {{article.createTime | letter}}
+                                            </template>
+                                            <span class="article-time">最后发布于 {{article.updateTime | letter}}</span>
                                         </el-tooltip>
-                                        <span class="article-read-count">阅读数 {{article.readCount}}</span>
+                                        <span class="article-read-count">阅读数 {{article.viewCount}}</span>
                                     </template>
                                     <div class="article-tag">
                                         本文标签：
-                                        <el-tag size="small" v-for="tag in article.tags">{{tag}}</el-tag>
+                                        <el-tag size="small" v-for="tag in article.tags">{{tag.title}}</el-tag>
                                     </div>
                                     <div class="article-copyright">
                                         <div>版权声明：
-                                            本文为Sagari博主「{{article.user.name}}」的原创文章，
+                                            本文为Sagari博主「{{article.user.username}}」的原创文章，
                                             遵循 CC 4.0 BY-SA 版权协议，转载请附上原文出处链接及本声明。</div>
                                         <div>原文链接：
-                                            <el-link type="primary" :href="article.link">
-                                                {{article.link}}
+                                            <el-link type="primary"
+                                                     :href="'http://sagari.cn/article/'+article.id"
+                                                     style="vertical-align: baseline;">
+                                                {{'http://sagari.cn/article/'+article.id}}
                                             </el-link>
                                         </div>
                                     </div>
@@ -40,26 +52,46 @@
                             </el-collapse>
                         </div>
                         <div class="article-body">
-                            <markdown-view :markdown="article.articleContent"></markdown-view>
+                            <markdown-view ref="markdown"
+                                           :markdown="article.content"
+                                           @register="registerEvent"></markdown-view>
                         </div>
                         <div class="article-body-foot">
                             <el-button-group>
                                 <el-button type="success"
                                            plain
-                                           :icon="good"
                                            @click="clickGood"
-                                           :class="{good: article.isGood}">{{article.goodCount}}</el-button>
-                                <el-button type="warning"
-                                           plain
-                                           :icon="bad"
-                                           @click="clickBad"
-                                           :class="{bad: article.isBad}">{{article.badCount}}</el-button>
+                                           class="iconfont"
+                                           :class="[article.good?'el-icon-ali-good-fill':'el-icon-ali-good']">
+                                    {{article.goodCount}}</el-button>
                                 <el-button type="primary"
                                            plain
-                                           :icon="collect"
-                                           @click="clickCollect"
-                                           :class="{collect: article.isCollect}">{{article.collectCount}}</el-button>
+                                           @click="openCollectDialog"
+                                           class="iconfont"
+                                           :class="[article.collect?'el-icon-ali-collect-fill':'el-icon-ali-collect']">
+                                    {{article.collectCount}}</el-button>
                             </el-button-group>
+                            <el-dialog title="选择收藏夹"
+                                       :visible.sync="favoritesDialogVisible"
+                                       top="30vh"
+                                       width="20%">
+                                <template v-slot:default>
+                                    <div>
+                                        <span>收藏至：</span>
+                                        <el-select v-model="favoritesId" size="small" placeholder="请选择">
+                                            <el-option v-for="item in favorites"
+                                                       :key="item.id"
+                                                       :label="item.title"
+                                                       :value="item.id">
+                                            </el-option>
+                                        </el-select>
+                                    </div>
+                                </template>
+                                <span slot="footer" class="dialog-footer">
+                                    <el-button size="small" @click="favoritesDialogVisible = false">取 消</el-button>
+                                    <el-button size="small" type="primary" @click="clickCollect">确 定</el-button>
+                                </span>
+                            </el-dialog>
                         </div>
                         <el-divider></el-divider>
                         <div class="article-foot">
@@ -73,25 +105,26 @@
                                 </el-col>
                                 <el-col :span="16">
                                     <div class="article-foot-center-top">
-                                        <el-link :underline="false">{{article.user.name}}</el-link>
+                                        <el-link :underline="false">{{article.user.username}}</el-link>
                                     </div>
                                     <div class="article-foot-center-bot">
                                         发布了{{article.user.articleCount}}篇文章 · {{article.user.fansCount}}个粉丝
                                     </div>
                                 </el-col>
                                 <el-col :span="6" style="text-align: right">
-                                    <el-button v-if="!article.user.isConcern"
-                                               :loading="isConcerning"
+                                    <el-button v-if="!follow"
+                                               :loading="isFollowing"
                                                type="primary"
                                                size="medium"
                                                @click="concern">关注</el-button>
-                                    <el-button v-if="article.user.isConcern"
-                                               :loading="isConcerning"
+                                    <el-button v-else
+                                               :loading="isFollowing"
                                                icon="el-icon-check"
                                                type="primary"
                                                plain
                                                size="medium"
-                                               @click="concern">已关注</el-button>
+                                               title="取消关注"
+                                               @click="cancelConcern">已关注</el-button>
                                 </el-col>
                             </el-row>
                         </div>
@@ -100,7 +133,7 @@
                         <div class="comment-write">
                             <el-row>
                                 <el-col :span="2">
-                                    <el-avatar :size="48" :src="article.user.avatar">
+                                    <el-avatar :size="48" :src="user.avatar">
                                         <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png"/>
                                     </el-avatar>
                                 </el-col>
@@ -108,7 +141,7 @@
                                     <el-input type="textarea"
                                               placeholder="写下你的评论..."
                                               :autosize="{minRows: 4, maxRows: 8}"
-                                              v-model="comment"
+                                              v-model="content"
                                               resize="none"
                                               class="comment-write-textarea"
                                               @focus="commentButtonShow = true"></el-input>
@@ -117,7 +150,7 @@
                             <el-collapse-transition>
                                 <div v-show="commentButtonShow" class="comment-write-button">
                                     <el-button type="danger"
-                                               :disabled="comment === ''"
+                                               :disabled="content === ''"
                                                :loading="isCommenting"
                                                round
                                                size="small"
@@ -141,12 +174,14 @@
                                 </span>
                             </div>
                             <div>
-                                <comment ref="comment" :article-user-id="article.user.id"></comment>
+                                <comment ref="comment"
+                                         :article-id="articleId"
+                                         :author="article.author"></comment>
                             </div>
                         </div>
                     </div>
                 </el-col>
-                <el-col :span="6">
+                <el-col :span="5">
                     <div class="author">
                         <el-card shadow="never">
                             <template v-slot:header>
@@ -164,7 +199,7 @@
                                     <el-col :span="18">
                                         <div class="author-name">
                                             <el-link :underline="false">
-                                                {{article.user.name}}
+                                                {{article.user.username}}
                                             </el-link>
                                         </div>
                                         <div class="author-description">
@@ -188,17 +223,19 @@
                             <template v-slot:header>
                                 相关文章
                             </template>
-                            <div class="relate-article-list" v-for="item in relatedArticle">
-                                <el-link :underline="false" class="relate-article-list-item">
+                            <div class="relate-article-list" v-for="item in relates">
+                                <el-link :underline="false"
+                                         :href="'/article/' + item.id"
+                                         class="relate-article-list-item">
                                     <div class="relate-article-title">
-                                        {{item.articleTitle}}
+                                        {{item.title}}
                                     </div>
                                     <div class="relate-article-info">
                                         <span>
-                                            <i class="el-icon-ali-good-fill"></i>{{item.goodCount}}
+                                            <i class="iconfont el-icon-ali-good"></i>{{item.goodCount}}
                                         </span>
                                         <span>
-                                            <i class="el-icon-ali-comments-fill"></i>{{item.commentCount}}
+                                            <i class="iconfont el-icon-ali-comments"></i>{{item.commentCount}}
                                         </span>
                                     </div>
                                 </el-link>
@@ -212,235 +249,357 @@
 </template>
 
 <script>
+    import $ from 'jquery';
     import MarkdownView from "@/views/article/MarkdownView";
     import Comment from "@/views/article/Comment";
+    import contentOpen from '@/assets/image/content-open.svg';
+    import contentClose from '@/assets/image/content-close.svg';
+    import axios from 'axios';
+
+    let sessionId = localStorage.getItem("xxl-sso-session-id");
+    axios.defaults.headers.common['xxl-sso-session-id'] = sessionId;
 
     export default {
         name: "Article",
         created() {
-            let articleId = this.$route.params.articleId;
-            console.log(articleId)
+            this.isLoading = true;
+            window.$ = window.jQuery = $;
+            this.articleId = Number(this.$route.params.articleId);
+            axios.get('http://localhost/article/article/' + this.articleId).then(res => {
+                let result = res.data;
+                if (result.code === 200) {
+                    this.article = result.data;
+                    axios.get('http://localhost/interactive/isFollow', {
+                        params: {
+                            followId: this.article.user.id
+                        }
+                    }).then(res => {
+                        this.follow = res.data;
+
+                    });
+                } else {
+                    this.$message({
+                        message: result.msg,
+                        type: 'error',
+                        center: true,
+                        offset: 100
+                    });
+                    this.isLoading = false;
+                }
+            }).catch(err => {
+                this.$message({
+                    message: '获取文章信息失败，请刷新重试',
+                    type: 'error',
+                    center: true,
+                    offset: 100
+                });
+                this.isLoading = false;
+            });
+            setTimeout(() => {
+                this.user = this.$store.getters.getUser;
+                this.userId = this.$store.getters.getUserId;
+            }, 1000);
+            axios.get("http://localhost/search/getRelateArticle", {
+                params: {
+                    articleId: this.articleId
+                }
+            }).then(res => {
+                let result = res.data;
+                if (result.code === 200) {
+                    this.relates = result.data.relates.map(item => item._source);
+                }
+            });
         },
         data() {
             return {
-                userId: 1,
-                comment: '',
+                user: {
+                    username: ''
+                },
+                articleId: 0,
+                userId: 0,
+                content: '',
                 commentButtonShow: false,
                 isCommenting: false,
                 orderRule: true,    //true代表时间正序,
-                isConcerning: false,
                 isOnlyLandlord: false,
                 article: {
-                    articleId: 1,
-                    articleTitle: '世间万物，皆系于一箭之上',
-                    articleContent: '![](http://sagiri.ufile.ucloud.com.cn/7703ef16-1b8e-4aff-b212-62a6f512d037.png?UCloudPublicKey=Y4dA405-GGFaH-juHyHszNazLa_Cjrz9NGJTqn2b&Signature=yZltD6xlUb1XN2lx1ZMEIu%2F7xGc%3D&Expires=1582031346)\n' +
-                        '### 测试一下啦\n' +
-                        '```javasrcipt\n' +
-                        'import Vue from "vue";\n' +
-                        'import ElementUI from "element-ui";\n' +
-                        'import App from "@/App.vue";\n' +
-                        'import router from "@/router";\n' +
-                        'import store from "@/store";\n' +
-                        '\n' +
-                        'Vue.config.productionTip = false;\n' +
-                        '\n' +
-                        'Vue.use(ElementUI);\n' +
-                        '\n' +
-                        'new Vue({\n' +
-                        '    router,\n' +
-                        '    store,\n' +
-                        '    render: h => h(App)\n' +
-                        '}).$mount("#app");\n' +
-                        '```\n' +
-                        '![](http://sagiri.ufile.ucloud.com.cn/3c160759-7d13-4419-b913-a4e3bdeafbde.jpg?UCloudPublicKey=Y4dA405-GGFaH-juHyHszNazLa_Cjrz9NGJTqn2b&Signature=06faB7yk3HKIGXe7ySafR9ErM74%3D&Expires=1582031399)\n' +
-                        '### 测试一下啦\n' +
-                        '```javasrcipt\n' +
-                        'import Vue from "vue";\n' +
-                        'import ElementUI from "element-ui";\n' +
-                        'import App from "@/App.vue";\n' +
-                        'import router from "@/router";\n' +
-                        'import store from "@/store";\n' +
-                        '\n' +
-                        'Vue.config.productionTip = false;\n' +
-                        '\n' +
-                        'Vue.use(ElementUI);\n' +
-                        '\n' +
-                        'new Vue({\n' +
-                        '    router,\n' +
-                        '    store,\n' +
-                        '    render: h => h(App)\n' +
-                        '}).$mount("#app");\n' +
-                        '```\n',
-                    isGood: false,
-                    goodCount: 0,
-                    isBad: false,
-                    badCount: 0,
-                    isCollect: false,
-                    collectCount: 0,
-                    commentCount: 10,
-                    readCount: 8376,
-                    tags: ['javascript', 'java'],
-                    time: '2020-02-02 16:13:59',
-                    link: 'https://www.baidu.com',
                     user: {
-                        id: 1,
-                        name: 'Sakura',
-                        avatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
-                        articleCount: 10,
-                        fansCount: 100,
-                        isConcern: false
+                        username: ''
                     }
                 },
-                relatedArticle:[
-                    {
-                        articleTitle: '2020 前端面试 | 第一波面试题总结',
-                        goodCount: 420,
-                        commentCount: 95
-                    },
-                    {
-                        articleTitle: 'Vue中级指南-04 Vue中跨域以及打包部署到nginx跨域设置',
-                        goodCount: 105,
-                        commentCount: 29
-                    },
-                    {
-                        articleTitle: 'JavaScript入门指南(学习笔记) 两万余字的基础总结',
-                        goodCount: 69,
-                        commentCount: 11
-                    },
-                    {
-                        articleTitle: 'React入门指南(学习笔记)',
-                        goodCount: 51,
-                        commentCount: 6
-                    },
-                    {
-                        articleTitle: 'Vue入门指南-06 Vue中的动画(快速上手vue)',
-                        goodCount: 47,
-                        commentCount: 0
-                    },
-                    {
-                        articleTitle: '2020 前端面试 | 第一波面试题总结',
-                        goodCount: 420,
-                        commentCount: 95
-                    },
-                    {
-                        articleTitle: 'Vue中级指南-04 Vue中跨域以及打包部署到nginx跨域设置',
-                        goodCount: 105,
-                        commentCount: 29
-                    },
-                    {
-                        articleTitle: 'JavaScript入门指南(学习笔记) 两万余字的基础总结',
-                        goodCount: 69,
-                        commentCount: 11
-                    },
-                    {
-                        articleTitle: 'React入门指南(学习笔记)',
-                        goodCount: 51,
-                        commentCount: 6
-                    },
-                    {
-                        articleTitle: 'Vue入门指南-06 Vue中的动画(快速上手vue)',
-                        goodCount: 47,
-                        commentCount: 0
-                    }
-                ]
+                relates:[],
+                favorites: [],
+                favoritesId: '',
+                favoritesDialogVisible: false,
+                follow: false,
+                isFollowing: false,
+                isLoading: false
             }
         },
         methods: {
             clickGood() {
                 let article = this.article;
-                if (article.isBad) {
-                    article.isBad = false;
-                    article.badCount--;
-                }
-                if (article.isGood) {
-                    article.isGood = false;
-                    article.goodCount--;
-                } else {
-                    article.isGood = true;
-                    article.goodCount++;
-                }
+                axios.get('http://localhost/interactive/good', {
+                    params: {
+                        targetId: this.articleId,
+                        articleId: this.article.id,
+                        type: 1,
+                        author: this.article.author
+                    }
+                }).then(res => {
+                    let result = res.data;
+                    if (result.code === 200) {
+                        article.good = !article.good;
+                        if (article.good) {
+                            article.goodCount++;
+                        } else {
+                            article.goodCount--;
+                        }
+                    } else {
+                        this.$message({
+                            message: res.msg,
+                            type: 'error',
+                            center: true,
+                            offset: 100
+                        });
+                    }
+                }).catch(err => {
+                    this.$message({
+                        message: '获取文章信息失败，请刷新重试',
+                        type: 'error',
+                        center: true,
+                        offset: 100
+                    });
+                });
             },
-            clickBad() {
-                let article = this.article;
-                if (article.isGood) {
-                    article.isGood = false;
-                    article.goodCount--;
+            openCollectDialog() {
+                let userId = this.$store.getters.getUserId;
+                if (userId === undefined || userId <= 0) {
+                    return;
                 }
-                if (article.isBad) {
-                    article.isBad = false;
-                    article.badCount--;
-                } else {
-                    article.isBad = true;
-                    article.badCount++;
-                }
+                const loading = this.$loading({
+                    lock: true,
+                    text: 'Loading',
+                    spinner: 'el-icon-loading',
+                    background: 'rgba(0, 0, 0, 0.7)'
+                });
+                axios.get('http://localhost/collect/getFavorites', {
+                    params: {
+                        targetUserId: userId
+                    }
+                }).then(res => {
+                    let result = res.data;
+                    if (result.code === 200) {
+                        this.favorites = result.data.favorites;
+                        this.favoritesDialogVisible = true;
+                    } else {
+                        this.$message({
+                            message: '获取收藏夹列表失败，请刷新重试',
+                            type: 'error',
+                            center: true,
+                            offset: 100
+                        });
+                    }
+                    loading.close();
+                }).catch(err => {
+                    this.$message({
+                        message: '服务器打了个盹，请再试一次吧',
+                        type: 'error',
+                        center: true,
+                        offset: 100
+                    });
+                    loading.close();
+                });
             },
             clickCollect() {
                 let article = this.article;
-                if (article.isCollect) {
-                    article.isCollect = false;
-                    article.collectCount--;
-                } else {
-                    article.isCollect = true;
-                    article.collectCount++;
-                }
+                axios.put('http://localhost/collect/collectArticle', {
+                    articleId: article.id,
+                    favoritesId: this.favoritesId
+                }).then(res => {
+                    let result = res.data;
+                    if (result.code === 200) {
+                        article.collectCount++;
+                        this.$message({
+                            message: '收藏成功',
+                            type: 'success',
+                            center: true,
+                            offset: 100
+                        });
+                    } else {
+                        this.$message({
+                            message: result.msg,
+                            type: 'error',
+                            center: true,
+                            offset: 100
+                        });
+                    }
+                }).catch(err => {
+                    this.$message({
+                        message: '服务器打了个盹，请再试一次吧',
+                        type: 'error',
+                        center: true,
+                        offset: 100
+                    });
+                });
             },
             changeOrderRule(flag) {
                 this.orderRule = flag;
                 this.$refs.comment.order(this.orderRule);
             },
             concern() {
-                this.isConcerning = !this.isConcerning;
+                this.isFollowing = true;
                 let user = this.article.user;
-                setTimeout(() => {
-                    if (user.isConcern) {
-                        user.isConcern = false;
+                axios.put('http://localhost/interactive/follow?followId=' + user.id).then(res => {
+                    let result = res.data;
+                    if (result.code === 200) {
+                        this.follow = true;
+                        user.fansCount++;
+                    } else {
+                        this.$message({
+                            message: result.msg,
+                            type: 'error',
+                            center: true,
+                            offset: 100
+                        });
+                    }
+                    this.isFollowing = false;
+                }).catch(err => {
+                    this.$message({
+                        message: '服务器打了个盹，再试一次吧',
+                        type: 'error',
+                        center: true,
+                        offset: 100
+                    });
+                    this.isFollowing = false;
+                });
+            },
+            cancelConcern() {
+                this.isFollowing = true;
+                let user = this.article.user;
+                let followIds = [];
+                followIds.push(user.id);
+                axios.post('http://localhost/interactive/cancelFollow', {
+                    followIds
+                }).then(res => {
+                    let result = res.data;
+                    if (result.code === 200) {
+                        this.follow = false;
                         user.fansCount--;
                     } else {
-                        user.isConcern = true;
-                        user.fansCount++;
+                        this.$message({
+                            message: result.msg,
+                            type: 'error',
+                            center: true,
+                            offset: 100
+                        });
                     }
-                    this.isConcerning = !this.isConcerning;
-                }, 2000);
+                    this.isFollowing = false;
+                }).catch(err => {
+                    this.$message({
+                        message: '服务器打了个盹，再试一次吧',
+                        type: 'error',
+                        center: true,
+                        offset: 100
+                    });
+                    this.isFollowing = false;
+                });
             },
             reply() {
                 this.isCommenting = true;
-                setTimeout(() => {
-                    let comment = {};
-                    comment.commentId = this.article.commentCount + 1;
-                    comment.userId = this.userId;
-                    if (this.userId === 1) {
-                        comment.userName = 'Sakura';
-                        comment.userAvatar = 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png';
-                    } else if (this.userId === 2) {
-                        comment.userName = '远坂凛';
-                        comment.userAvatar = 'https://ae01.alicdn.com/kf/Hd60a3f7c06fd47ae85624badd32ce54dv.jpg';
-                    } else if (this.userId === 3) {
-                        comment.userName = '伊莉雅';
-                        comment.userAvatar = 'https://ae01.alicdn.com/kf/Hf6c0b4a7428b4edf866a9fbab75568e6U.jpg';
+                axios.post('http://localhost/comment/comment-parent', {
+                    articleId: this.articleId,
+                    content: this.content,
+                    userId: this.userId
+                }).then(res => {
+                    let result = res.data;
+                    if (result.code === 200) {
+                        this.$message({
+                            message: '评论成功',
+                            type: 'success',
+                            center: true,
+                            offset: 100
+                        });
+                        this.content = '';
+                        this.isCommenting = false;
+                    } else {
+                        this.$alert(result.msg, '评论失败', {
+                            confirmButtonText: '确定',
+                            callback: action => {
+                                this.isCommenting = false;
+                            }
+                        });
                     }
-                    comment.content = this.comment;
-                    comment.isActive = 0;
-                    comment.good = 0;
-                    comment.bad = 0;
-                    comment.time = new Date().getTime() / 1000;
-                    comment.isShowReplyAndDel = false;
-                    comment.selfContent = '';
-                    comment.selfContentHead = '';
-                    comment.toId = undefined;
-                    comment.childComments = [];
-                    this.$refs.comment.comments.push(comment);
-                    this.article.commentCount++;
-                    this.$refs.comment.commentCount++;
-                    this.$refs.comment.pagination.total++;
-                    this.comment = '';
-                    this.commentButtonShow = false;
-                    this.isCommenting = false;
-                }, 2000);
+                }).catch(err => {
+                    this.$alert('评论未发表成功', '评论失败', {
+                        confirmButtonText: '确定',
+                        callback: action => {
+                            this.isCommenting = false;
+                        }
+                    });
+                });
             },
             onlyLandlord() {
                 this.isOnlyLandlord = !this.isOnlyLandlord;
                 this.$refs.comment.onlyLandlord(this.isOnlyLandlord);
                 return this.isOnlyLandlord ? 'primary' : '';
+            },
+            registerEvent() {
+                for(let item of $('.markdown-toc-list li')) {
+                    $(item).click(() => {
+                        let dom = $(event.target);
+                        event.stopPropagation();
+                        if (dom.attr('flag') === undefined || dom.attr('flag') === 'open') {
+                            dom.attr('flag', 'close');
+                            dom.css({'list-style': 'url(' + contentClose + ')'});
+                        } else {
+                            dom.attr('flag', 'open');
+                            dom.css({'list-style': 'url(' + contentOpen + ')'});
+                        }
+                        dom.children('ul').slideToggle()
+                    });
+                }
+                for (let item of $('.markdown-body pre')) {
+                    let button = $('<input type="button" value="复制" style="float: right;display: none">');
+                    button.click(() => {
+                        let dom = $(event.target);
+                        if (dom.val() !== '复制成功') {
+                            let el = dom.parent();
+                            let codeEl = $(el).find('code');
+                            let code = '';
+                            for (let temp of codeEl) {
+                                code += $(temp).children('span').text() + '\n';
+                            }
+                            let text = document.createElement('textarea');
+                            text.value = code;
+                            document.body.appendChild(text);
+                            text.select();
+                            document.execCommand('Copy');
+                            document.body.removeChild(text);
+                            dom.val('复制成功');
+                            this.$message({
+                                message: '此段代码已成功复制到您的剪贴板！',
+                                type: "success",
+                                offset: 100
+                            })
+                        }
+                        setTimeout(() => {
+                            dom.val('复制');
+                        }, 1000)
+                    });
+                    $(item).prepend(button);
+                    $(item).mouseover(() => {
+                        let el = $(event.currentTarget);
+                        $(el).children('input').css('display', 'inline-block');
+                    });
+                    $(item).mouseout(() => {
+                        let el = $(event.currentTarget);
+                        $(el).children('input').css('display', 'none');
+                    });
+                }
+                setTimeout(() => {
+                    this.isLoading = false;
+                }, 500);
             }
         },
         computed: {
@@ -451,19 +610,15 @@
                     return 'el-icon-ali-good';
                 }
             },
-            bad() {
-                if (this.article.isBad) {
-                    return 'el-icon-ali-bad-fill';
-                } else {
-                    return 'el-icon-ali-bad';
-                }
-            },
             collect() {
                 if (this.article.isCollect) {
                     return 'el-icon-ali-collect-fill';
                 } else {
                     return 'el-icon-ali-collect';
                 }
+            },
+            width() {
+                return window.innerWidth * 5 / 36 - 10;
             }
         },
         components: {
@@ -520,10 +675,6 @@
         font-size: 14px;
         color: #858585;
         line-height: 26px;
-    }
-
-    .article-body .editormd-html-preview {
-        padding: 20px 0;
     }
 
     .article-body-foot {
@@ -647,7 +798,7 @@
     }
 
     .relate-article-list-item:hover {
-        background-color: hsla(0,0%,85.1%,.1);
+        background-color: hsla(0, 0%, 85.1%, .1);
     }
 
     .relate-article-list-item:hover .relate-article-info {
@@ -667,11 +818,33 @@
     .relate-article-info span i {
         margin-right: .5rem;
     }
+
+    .content-parent {
+
+    }
+
+    .table-of-content {
+        position: fixed;
+        background-color: #ffffff;
+        border-radius: 4px;
+        padding-bottom: 16px;
+    }
+
+    .table-header {
+        font-size: 16px;
+        padding: 12px 15px;
+        border-bottom: 1px solid #ebeef5;
+    }
 </style>
 
 <style>
-    .el-button-group .el-button i {
-        font-size: 18px;
+    .el-button-group .el-icon-ali-good:before,
+    .el-button-group .el-icon-ali-good-fill:before,
+    .el-button-group .el-icon-ali-bad:before,
+    .el-button-group .el-icon-ali-bad-fill:before,
+    .el-button-group .el-icon-ali-collect:before,
+    .el-button-group .el-icon-ali-collect-fill:before {
+        font-size: 18px !important;
     }
 
     .comment-write-textarea .el-textarea__inner {
@@ -734,6 +907,19 @@
     .relate-article .el-card .el-card__body {
         padding: 0;
     }
-</style>
 
-<style src="../../assets/css/iconfont.css"></style>
+    .el-tooltip__popper {
+        z-index: 10001 !important;
+    }
+
+    #table-of-content ul {
+        list-style: url("../../assets/image/content-open.svg");
+        padding-left: 35px;
+    }
+
+    #table-of-content ul li a {
+        font-size: 14px;
+        color: #6c757d;
+        text-decoration: none;
+    }
+</style>

@@ -1,128 +1,102 @@
 <template>
-    <div :id="id">
+    <div>
+        <link rel="stylesheet" href="../../editor.md/css/editormd.min.css">
+        <link rel="stylesheet" href="../../editor.md/css/editormd.preview.min.css">
+        <div :id="id" style="padding: 20px 0 !important;"></div>
+        <image-viewer :z-index="10000"
+                      :url-list="imageUrlList"
+                      :display="imageViewerDisplay"
+                      ref="imageViewer"
+                      @hide="hideImage"></image-viewer>
     </div>
 </template>
 
 <script type="module">
     import $ from 'jquery';
-    import Vue from 'vue';
+    import scriptjs from 'scriptjs';
+    import {defaultConfig} from "@/config/editor.md";
+    import ImageViewer from "@/views/article/ImageViewer";
 
     export default {
-        name: "MarkdownView",
+        name: "MarkDownView",
+        created() {
+
+        },
         data() {
             return {
-                /*markdown: '![](http://sagiri.ufile.ucloud.com.cn/7703ef16-1b8e-4aff-b212-62a6f512d037.png?UCloudPublicKey=Y4dA405-GGFaH-juHyHszNazLa_Cjrz9NGJTqn2b&Signature=dFIbsydcBpd9sYZ%2F6evGescHrBg%3D&Expires=1581517887)\n' +
-                    '### 测试一下啦\n' +
-                    '```javasrcipt\n' +
-                    'import Vue from "vue";\n' +
-                    'import ElementUI from "element-ui";\n' +
-                    'import App from "@/App.vue";\n' +
-                    'import router from "@/router";\n' +
-                    'import store from "@/store";\n' +
-                    '\n' +
-                    'Vue.config.productionTip = false;\n' +
-                    '\n' +
-                    'Vue.use(ElementUI);\n' +
-                    '\n' +
-                    'new Vue({\n' +
-                    '    router,\n' +
-                    '    store,\n' +
-                    '    render: h => h(App)\n' +
-                    '}).$mount("#app");\n' +
-                    '```\n' +
-                    '![](http://sagiri.ufile.ucloud.com.cn/3c160759-7d13-4419-b913-a4e3bdeafbde.jpg?UCloudPublicKey=Y4dA405-GGFaH-juHyHszNazLa_Cjrz9NGJTqn2b&Signature=kJrzVokPwvWYJ4DZ9JxNQOHanT4%3D&Expires=1581517918)\n' +
-                    '### 测试一下啦\n' +
-                    '```javasrcipt\n' +
-                    'import Vue from "vue";\n' +
-                    'import ElementUI from "element-ui";\n' +
-                    'import App from "@/App.vue";\n' +
-                    'import router from "@/router";\n' +
-                    'import store from "@/store";\n' +
-                    '\n' +
-                    'Vue.config.productionTip = false;\n' +
-                    '\n' +
-                    'Vue.use(ElementUI);\n' +
-                    '\n' +
-                    'new Vue({\n' +
-                    '    router,\n' +
-                    '    store,\n' +
-                    '    render: h => h(App)\n' +
-                    '}).$mount("#app");\n' +
-                    '```\n',*/
+                imageUrlList: [],
+                imageViewerDisplay: 'none',
+                imageDOMs: ''
             }
         },
         props: {
             id: {
                 type: String,
-                default: 'markdownView'
+                default: 'markdown-view'
             },
-            markdown: String
+            markdown: String,
+            config: {
+                type: Object
+            }
         },
         mounted() {
-            let vm = this;
-            this.requireView(() => {
-                //let test = new RegExp(/[!\[\]\(+\)]/);
-                //let test = new RegExp(/((?<=!\[\]\().*?(?=\)))/);
-                //let test = new RegExp(/(http.+.+)[(!\[\]\()(\))]/);
-                let test = new RegExp(/(http.+.+)[((?<=!\[\]\().*?(?=\)))]/);
-                let str = vm.markdown.split(test);
-                for (let i = 0; i < str.length; i++) {
-                    if (str[i].startsWith("![](")) {
-                        continue;
-                    } else if (str[i].startsWith("http")) {
-                        this.addImageSrc(str[i]);
-                        let previewSrcList = this.$store.state.previewSrcList;
-                        let component = Vue.extend({
-                            render(createElement) {
-                                return createElement('el-image', {
-                                    attrs: {
-                                        src: str[i],
-                                        previewSrcList: previewSrcList,
-                                        zIndex: 10000
-                                    }
-                                });
-                            },
-                            data() {
-                                return {
-
-                                }
-                            }
-                        });
-                        let dom = new component().$mount().$el;
-                        $('#markdownView').append(dom);
-                    } else if (str[i] === ''){
-                        continue;
-                    } else {
-                        let markdown = '';
-                        if (str[i].endsWith('![](')) {
-                            markdown = str[i].substring(0, str[i].lastIndexOf('![]('))
-                        } else {
-                            markdown = str[i];
-                        }
-                        editormd.markdownToHTML(vm.id, {markdown: markdown});
-                    }
+            window.$ = window.jQuery = $;
+            setTimeout(() => {
+                this.initView();
+                this.imageDOMs = $('.picture');
+                for(let item of this.imageDOMs) {
+                    this.imageUrlList.push($(item).attr('src'));
+                    $(item).click(this.showImage);
                 }
-            });
+                this.$emit('register');
+            }, 1000);
         },
         methods: {
-            requireView(callback) {
-                window.$ = window.jQuery = $;
-                $.getScript("/lib/editor.md/editormd.min.js", () => {
-                    $.getScript("/lib/editor.md/lib/marked.min.js", () => {
-                        $.getScript("/lib/editor.md/lib/prettify.min.js", () => {
-                            callback();
-                        });
+            fetchScript(url) {
+                return new Promise((resolve) => {
+                    scriptjs(url, () => {
+                        resolve();
                     });
                 });
-                $('head').append($('<link rel="stylesheet" type="text/css" />').attr('href', '/lib/editor.md/css/editormd.preview.css'));
             },
-            addImageSrc(src) {
-                this.$store.commit('addImageSrc', src);
+            initView() {
+                (async () => {
+                    await this.fetchScript('../../editor.md/jquery.min.js')
+                    await this.fetchScript('../../editor.md/editormd.min.js')
+                    await this.fetchScript('../../editor.md/lib/marked.min.js')
+                    await this.fetchScript('../../editor.md/lib/prettify.min.js')
+                    await this.fetchScript('../../editor.md/lib/raphael.min.js')
+                    await this.fetchScript('../../editor.md/lib/underscore.min.js')
+                    await this.fetchScript('../../editor.md/lib/sequence-diagram.min.js')
+                    await this.fetchScript('../../editor.md/lib/flowchart.min.js')
+                    await this.fetchScript('../../editor.md/lib/jquery.flowchart.min.js')
+                    this.$nextTick(() => {
+                        let config = this.getConfig();
+                        config.markdown = this.markdown;
+                        window.editormd.markdownToHTML(this.id, config);
+                    })
+                })();
+            },
+            getConfig() {
+                return { ...defaultConfig, ...this.config };
+            },
+            showImage() {
+                for(let i = 0; i < this.imageDOMs.length; i++) {
+                    if ($(this.imageDOMs[i]).is($(event.target))) {
+                        this.$refs['imageViewer'].index = i;
+                    }
+                }
+                this.imageViewerDisplay = 'block';
+            },
+            hideImage() {
+                this.imageViewerDisplay = 'none';
             }
+        },
+        components: {
+            ImageViewer
         }
     }
 </script>
 
 <style scoped>
-
 </style>

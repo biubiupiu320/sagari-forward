@@ -1,119 +1,138 @@
 <template>
-    <div :id="id" style="z-index: 10000">
+    <div class="markdown-editor-box">
+        <link rel="stylesheet" href="editor.md/css/editormd.min.css">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/KaTeX/0.1.1/katex.min.css">
+        <link rel="stylesheet" href="editor.md/lib/codemirror/codemirror.min.css" />
+        <link rel="stylesheet" href="editor.md/lib/codemirror/addon/dialog/dialog.css" />
+        <link rel="stylesheet" href="editor.md/lib/codemirror/addon/search/matchesonscrollbar.css" />
+        <div :id="editorId" class="md-editor"></div>
     </div>
 </template>
-
 <script>
-    import $ from 'jquery';
+    import scriptjs from 'scriptjs'
+    import { defaultConfig } from '../../config/editor.md'
 
     export default {
-        name: "MarkdownEditor",
-        data() {
-            return {
-                //最终生成的编辑器
-                editor: null,
-                //默认选项
-                defaultOptions: {
-                    width: "100%",
-                    height: 515,
-                    path: "/lib/editor.md/lib/",
-                    theme: "",
-                    previewTheme: "",
-                    editorTheme: "default",
-                    //markdown : md,   //动态设置的markdown文本
-                    codeFold: true,
-                    //syncScrolling : false,
-                    saveHTMLToTextarea: true,    // 保存 HTML 到 Textarea
-                    searchReplace: true,
-                    watch : false,                // 关闭实时预览
-                    htmlDecode: "style,script,iframe|on*",            // 开启 HTML 标签解析，为了安全性，默认不开启
-                    //toolbar  : false,             //关闭工具栏
-                    //previewCodeHighlight : false, // 关闭预览 HTML 的代码块高亮，默认开启
-                    emoji: true,
-                    taskList: true,
-                    tocm: true,         // Using [TOCM]
-                    tex: true,                   // 开启科学公式TeX语言支持，默认关闭
-                    flowChart: true,             // 开启流程图支持，默认关闭
-                    sequenceDiagram: true,       // 开启时序/序列图支持，默认关闭,
-                    //dialogLockScreen : false,   // 设置弹出层对话框不锁屏，全局通用，默认为true
-                    //dialogShowMask : false,     // 设置弹出层对话框显示透明遮罩层，全局通用，默认为true
-                    //dialogDraggable : false,    // 设置弹出层对话框不可拖动，全局通用，默认为true
-                    //dialogMaskOpacity : 0.4,    // 设置透明遮罩层的透明度，全局通用，默认值为0.1
-                    //dialogMaskBgColor : "#000", // 设置透明遮罩层的背景颜色，全局通用，默认为#fff
-                    imageUpload: true,
-                    imageFormats: ["jpg", "jpeg", "gif", "png", "bmp", "webp"],
-                    imageUploadURL: "./php/upload.php",
-                    crossDomainUpload: true,
-                    placeholder: '请在此详细描述你的问题，支持MarkDown语法',
-                    onload: function () {
-                        //console.log('onload', this);
-                        //this.fullscreen();
-                        //this.unwatch();
-                        //this.watch().fullscreen();
-
-                        //this.setMarkdown("#PHP");
-                        //this.width("100%");
-                        //this.height(480);
-                        //this.resize("100%", 640);
-                    },
-                    toolbarIcons: function () {
-                        return ['undo', 'redo', '|', 'bold', 'del', 'italic', 'quote', 'ucwords',
-                            'uppercase', 'lowercase', 'h1', 'h2', 'h3', '|', 'list-ul', 'list-ol', 'hr',
-                            'link', 'image', 'code', 'code-block', 'table','emoji', 'html-entities',
-                            'pagebreak', '|', 'watch', 'fullscreen', 'clear', 'search'];
-                    }
-                }
-            }
-        },
+        name: 'MarkdownEditor',
         props: {
-            /**
-             * editormd挂载元素的id
-             */
-            id: {
-                type: String,
-                default: 'markdowneditor'
+            editorId: {
+                'type': String,
+                'default': 'markdown-editor'
             },
-            /**
-             * editormd的选项对象
-             */
-            options: {
+            onchange: { // 内容改变时回调，返回（html, markdown, text）
+                type: Function
+            },
+            config: { // 编辑器配置
                 type: Object
+            },
+            initData: {
+                'type': String
+            },
+            initDataDelay: {
+                'type': Number, // 延迟初始化数据时间，单位毫秒
+                'default': 0
             }
         },
-        mounted() {
-            let vm = this;
-            //加载editormd
-            this.requireEditor(function () {
-                vm.editor = editormd(vm.id, vm.getOptions());
-            })
-
+        data: function () {
+            return {
+                editor: null,
+                timer: null,
+                doc: {},
+                jsLoadOver: false
+            }
         },
         methods: {
-            /**
-             * 异步加载editormd
-             * callback 成功后的回调函数
-             */
-            requireEditor(callback) {
-                let vm = this;
-                //设置全局变量，因为editormd依赖jquery
-                window.$ = window.jQuery = $;
-                //异步加载并执行
-                $.getScript("/lib/editor.md/editormd.min.js", function (script) {
-                    callback();
+            fetchScript: function (url) {
+                return new Promise((resolve) => {
+                    scriptjs(url, () => {
+                        resolve()
+                    })
                 })
-                //加载css
-                $('head').append($('<link rel="stylesheet" type="text/css" />').attr('href', '/lib/editor.md/css/editormd.min.css'));
             },
-            /**
-             * 得到最终的options，组件属性上获得的选项覆盖此处的默认选项
-             */
-            getOptions() {
-                return Object.assign(this.defaultOptions, this.options);
+            getConfig: function () {
+                return { ...defaultConfig, ...this.config }
+            },
+            getEditor: function () {
+                return this.editor
+            },
+            previewing: function () {
+                return this.editor.previewing()
+            },
+            getMarkdown: function () {
+                return this.editor.getMarkdown()
+            },
+            setMarkdown: function (markdown) {
+                return this.editor.setMarkdown(markdown)
+            },
+            init (id) {
+                let vm = this
+                vm.initEditor('');
+            },
+            initEditor: function (markdown) {
+                let vm = this
+                let config = vm.getConfig()
+                if (markdown) {
+                    config.markdown = markdown
+                }
+                (async () => {
+                    await vm.fetchScript('editor.md/jquery.min.js')
+                    await vm.fetchScript('editor.md/editormd.min.js')
+                    await vm.fetchScript('editor.md/lib/codemirror/codemirror.min.js')
+                    await vm.fetchScript('editor.md/lib/codemirror/addons.min.js')
+                    await vm.fetchScript('editor.md/lib/codemirror/modes.min.js')
+                    await vm.fetchScript('editor.md/lib/marked.min.js')
+                    await vm.fetchScript('editor.md/lib/prettify.min.js')
+                    await vm.fetchScript('editor.md/lib/raphael.min.js')
+                    await vm.fetchScript('editor.md/lib/underscore.min.js')
+                    await vm.fetchScript('editor.md/lib/sequence-diagram.min.js')
+                    await vm.fetchScript('editor.md/lib/flowchart.min.js')
+                    await vm.fetchScript('editor.md/lib/jquery.flowchart.min.js')
+                    await vm.fetchScript('//cdnjs.cloudflare.com/ajax/libs/KaTeX/0.1.1/katex.min.js')
+                    vm.jsLoadOver = true
+                    vm.$nextTick(() => {
+                        vm.editor = window.editormd(vm.editorId, config);
+                        vm.editor.on('load', () => {
+                            setTimeout(() => { // hack bug: 一个页面多个编辑器只能初始化其中一个数据问题
+                                vm.initData && vm.editor.setMarkdown(vm.initData)
+                            }, vm.initDataDelay)
+                        })
+                        vm.onchange && vm.editor.on('change', () => {
+                            let html = vm.editor.getPreviewedHTML()
+                            vm.onchange({
+                                markdown: vm.editor.getMarkdown(),
+                                html: html,
+                                text: window.$(html).text()
+                            })
+                        })
+                    })
+                })();
+            }
+        },
+        mounted: function () {
+            let vm = this
+            vm.init('')
+            vm.timer = setInterval(function () {
+                if (vm.editor && vm.jsLoadOver) {
+                    try {
+                        window.clearInterval(vm.timer)
+                        vm.timer = null
+                    } catch (e) {}
+                }
+            }, 80);
+        },
+        destroyed: function () {
+            let vm = this
+            if (vm.timer != null) {
+                window.clearInterval(vm.timer)
+                vm.timer = null
             }
         }
     }
 </script>
 
 <style scoped>
-
+    .md-editor {
+        border-radius: 5px;
+        z-index: 10000;
+    }
 </style>

@@ -1,5 +1,5 @@
 <template>
-    <div class="fans">
+    <div class="fans" v-loading="isLoading">
         <div class="fans-header">
             <span>我的粉丝</span>
             <span class="fans-count">共{{fans.length}}人</span>
@@ -18,18 +18,19 @@
                         </el-link>
                     </span>
                     <span class="fans-name">
-                        <el-link :underline="false">{{item.name}}</el-link>
+                        <el-link :underline="false">{{item.username}}</el-link>
                     </span>
                     <span class="fans-btn">
                         <el-button size="small"
-                                   v-if="item.isFans"
-                                   @click="remove(index)">移除</el-button>
+                                   @click="removeSingle(index)">移除</el-button>
                         <el-button size="small"
-                                   v-if="item.isFollow"
+                                   v-if="item.follow"
+                                   :loading="isFollowing"
                                    @click="cancelFollow(index)">取消关注</el-button>
                         <el-button type="primary"
                                    size="small"
                                    v-else
+                                   :loading="isFollowing"
                                    @click="follow(index)">关注</el-button>
                     </span>
                 </li>
@@ -38,58 +39,169 @@
         <div class="fans-footer">
             <el-pagination
                 layout="prev, pager, next"
-                :total="50">
+                @current-change="handlerPageChange"
+                :total="pagination.total">
             </el-pagination>
         </div>
     </div>
 </template>
 
 <script>
+    import axios from "axios";
+
+    let sessionId = localStorage.getItem("xxl-sso-session-id");
+    axios.defaults.headers.common['xxl-sso-session-id'] = sessionId;
+
     export default {
         name: "Fans",
+        created() {
+            this.getFansList(1);
+        },
         data() {
             return {
-                fans: [
-                    {
-                        id: 1,
-                        name: 'Sakura',
-                        avatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
-                        isFans: true,
-                        isFollow: false
-                    },
-                    {
-                        id: 2,
-                        name: '哟吼',
-                        avatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
-                        isFans: true,
-                        isFollow: false
-                    }
-                ]
+                fans: [],
+                pagination: {},
+                isLoading: false,
+                isFollowing: false
             }
         },
         methods: {
             follow(index) {
-                this.fans[index].isFollow = true;
+                this.isFollowing = true;
+                let followId = this.fans[index].id;
+                axios.put('http://localhost/interactive/follow?followId=' + followId).then(res => {
+                    let result = res.data;
+                    if (result.code === 200) {
+                        this.fans[index].follow = true;
+                    } else {
+                        this.$message({
+                            message: result.msg,
+                            type: 'error',
+                            center: true,
+                            offset: 100
+                        });
+                    }
+                    this.isFollowing = false;
+                }).catch(err => {
+                    this.$message({
+                        message: '服务器打了个盹，再试一次吧',
+                        type: 'error',
+                        center: true,
+                        offset: 100
+                    });
+                    this.isFollowing = false;
+                });
             },
             cancelFollow(index) {
-                this.fans[index].isFollow = false;
+                this.isFollowing = true;
+                let followIds = [];
+                followIds.push(this.fans[index].id);
+                axios.post('http://localhost/interactive/cancelFollow', {
+                    followIds
+                }).then(res => {
+                    let result = res.data;
+                    if (result.code === 200) {
+                        this.fans[index].follow = false;
+                    } else {
+                        this.$message({
+                            message: result.msg,
+                            type: 'error',
+                            center: true,
+                            offset: 100
+                        });
+                    }
+                    this.isFollowing = false;
+                }).catch(err => {
+                    this.$message({
+                        message: '服务器打了个盹，再试一次吧',
+                        type: 'error',
+                        center: true,
+                        offset: 100
+                    });
+                    this.isFollowing = false;
+                });
             },
-            remove(index) {
-                this.fans[index].isFans = false;
-                this.fans.splice(index, 1);
+            removeSingle(index) {
+                let fansIds = this.fans[index].id;
+                this.remove(fansIds);
             },
             removeAll() {
-                this.fans = this.fans.map(item => {
-                    item.isFans = false;
-                    return item;
+                let fansIds = this.fans.map(item => item.id);
+                this.remove(fansIds);
+            },
+            remove(fansIds) {
+                this.isLoading = true;
+                axios.post('http://localhost/interactive/removeFans', {
+                    fansIds
+                }).then(res => {
+                    let result = res.data;
+                    if (result.code === 200) {
+                        this.getFansList(this.pagination.pageNum);
+                    } else {
+                        this.$message({
+                            message: result.msg,
+                            type: 'error',
+                            center: true,
+                            offset: 100
+                        });
+                        this.isLoading = false;
+                    }
+                }).catch(err => {
+                    this.$message({
+                        message: '服务器打了个盹，请再试一次吧',
+                        type: 'error',
+                        center: true,
+                        offset: 100
+                    });
+                    this.isLoading = false;
                 });
-                this.fans = [];
+            },
+            getFansList(page, size) {
+                this.isLoading = true;
+                page = page || 1;
+                size = size || 10;
+                axios.get('http://localhost/interactive/getFansList', {
+                    params: {
+                        page: 1,
+                        size: 10
+                    }
+                }).then(res => {
+                    let result = res.data;
+                    if (result.code === 200) {
+                        this.fans = result.data.fans;
+                        delete result.data.fans;
+                        this.pagination = result.data;
+                    } else {
+                        this.$message({
+                            message: result.msg,
+                            type: 'error',
+                            center: true,
+                            offset: 100
+                        });
+                    }
+                    this.isLoading = false;
+                }).catch(err => {
+                    this.$message({
+                        message: '服务器打了个盹，请刷新重试',
+                        type: 'error',
+                        center: true,
+                        offset: 100
+                    });
+                    this.isLoading = false;
+                });
+            },
+            handlerPageChange(currentPage) {
+                this.getFansList(currentPage);
             }
         }
     }
 </script>
 
 <style scoped>
+    .fans {
+        padding-bottom: 30px;
+    }
+
     .fans-header {
         border-bottom: 1px solid #e0e0e0;
     }

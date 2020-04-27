@@ -7,12 +7,11 @@
             </span>
         </div>
         <div class="favorite-body">
-            <el-tabs :stretch="true" active-name="0">
-                <el-tab-pane v-for="(item, index) in favorites" :label="item.name" :name="index + ''">
-                    <favorite-list :invitations="item.invitations"
-                                   :edit-favorite="item"
-                                   :index="index"
+            <el-tabs :stretch="true" v-model="activeName">
+                <el-tab-pane v-for="(item, index) in favorites" :label="item.title" :name="index + ''" :lazy="true">
+                    <favorite-list :index="index"
                                    :favorites="favorites"
+                                   :current-favorites="item"
                                    @cancelFavorite="cancelFavorite"
                                    @editFavorite="editFavorite"
                                    @delFavorite="delFavorite"
@@ -30,24 +29,28 @@
             </template>
             <template v-slot:default>
                 <div class="new-body">
-                    <el-form label-position="left" label-width="100px" :model="newFavorite" ref="newFavorite">
-                        <el-form-item label="标题" prop="name">
+                    <el-form label-position="left"
+                             label-width="100px"
+                             :model="newFavorites"
+                             :rules="formRule"
+                             ref="newFavorite">
+                        <el-form-item label="标题" prop="title">
                             <el-input type="text"
                                       size="small"
                                       placeholder="请填写收藏夹的名称"
-                                      v-model="newFavorite.name"></el-input>
+                                      v-model="newFavorites.title"></el-input>
                         </el-form-item>
                         <el-form-item label="描述（选填）" prop="description">
                             <el-input type="textarea"
                                       placeholder="请输入描述内容"
                                       resize="none"
                                       :rows="6"
-                                      v-model="newFavorite.description"></el-input>
+                                      v-model="newFavorites.description"></el-input>
                         </el-form-item>
-                        <el-form-item label="私密">
-                            <el-radio-group v-model="newFavorite.isPublic">
-                                <el-radio :label="true">公开(所有人可见)</el-radio>
-                                <el-radio :label="false">私密(只有你可以查看这个收藏夹)</el-radio>
+                        <el-form-item label="私密" prop="pri">
+                            <el-radio-group v-model="newFavorites.pri">
+                                <el-radio :label="false">公开(所有人可见)</el-radio>
+                                <el-radio :label="true">私密(只有你可以查看这个收藏夹)</el-radio>
                             </el-radio-group>
                         </el-form-item>
                     </el-form>
@@ -65,228 +68,126 @@
 
 <script>
     import FavoriteList from "@/views/uc/favorite/FavoriteList";
+    import axios from "axios";
+
+    let sessionId = localStorage.getItem("xxl-sso-session-id");
+    axios.defaults.headers.common['xxl-sso-session-id'] = sessionId;
 
     export default {
         name: "Favorite",
-        data() {
-            return {
-                favorites: [
-                    {
-                        id: 1,
-                        name: '用户管理',
-                        count: 11,
-                        isPublic: true,
-                        description: '',
-                        invitations: [
-                            {
-                                articleId: 1,
-                                articleTitle: '“低配”贪吃蛇“低配”贪吃蛇“低配”贪吃蛇“低配”贪吃蛇“低配”贪吃蛇“低配”贪吃蛇',
-                                articleContent: '前两天我们用canvas制作了一个简单的五子棋小游戏，今天我再用canvas制作一个贪吃蛇小游戏。试玩点这里：贪吃蛇吃蛇',
-                                goodCount: 20,
-                                commentCount: 10,
-                                viewCount: 1000,
-                                user: {
-                                    id: 1,
-                                    name: 'Sakura',
-                                    avatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'
-                                },
-                                isChecked: false
-                            },
-                            {
-                                articleId: 2,
-                                articleTitle: 'c语言经典例题',
-                                articleContent: '阅读目录：1、计算 int, float, double 和 char 字节大小2、交换两个数的值，使用临时变量3、判断奇数/偶数4、循环区',
-                                goodCount: 1,
-                                commentCount: 1,
-                                viewCount: 221,
-                                user: {
-                                    id: 1,
-                                    name: 'Sakura',
-                                    avatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'
-                                },
-                                isChecked: false
-                            }
-                        ]
-                    },
-                    {
-                        id: 2,
-                        name: '配置管理',
-                        count: 9,
-                        isPublic: true,
-                        description: '',
-                        invitations: [
-                            {
-                                articleId: 3,
-                                articleTitle: '年度榜单：Python三连冠，碾压Java！你怎么看？',
-                                articleContent: 'IEEE Spectrum近日发布了2020年度编程语言排行榜，令人些许意外的是，Python连续三年问鼎巅峰，你怎么看？',
-                                goodCount: 100,
-                                commentCount: 18,
-                                viewCount: 6822,
-                                user: {
-                                    id: 1,
-                                    name: 'Sakura',
-                                    avatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'
-                                },
-                                isChecked: false
-                            },
-                            {
-                                articleId: 4,
-                                articleTitle: '爬取b站视频的名称、地址、简介、观看次数、弹幕数量及发布时间并导入到csv中（附csv',
-                                articleContent: '该爬虫大致分为以下步骤：搜索关键词、点击搜索、进入新页面获取每个页面的HTML解析每个页面的HTML将爬取到',
-                                goodCount: 5,
-                                commentCount: 2,
-                                viewCount: 100,
-                                user: {
-                                    id: 1,
-                                    name: 'Sakura',
-                                    avatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'
-                                },
-                                isChecked: false
-                            }
-                        ]
-                    },
-                    {
-                        id: 3,
-                        name: '角色管理',
-                        count: 8,
-                        isPublic: true,
-                        description: '',
-                        invitations: [
-                            {
-                                articleId: 5,
-                                articleTitle: '好机会，女同事要我帮忙解决Maven冲突问题',
-                                articleContent: '任何一个故事起因最重要任何一个职业，女生都有绝对的优势。更别提 IT 行业了，在部门中要是有女程序猿那肯定是香',
-                                goodCount: 1,
-                                commentCount: 3,
-                                viewCount: 279,
-                                user: {
-                                    id: 1,
-                                    name: 'Sakura',
-                                    avatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'
-                                },
-                                isChecked: false
-                            },
-                            {
-                                articleId: 6,
-                                articleTitle: '设计模式的7大原则',
-                                articleContent: '一、 设计模式的7个原则1. 单一职责原则2. 接口隔离原则3. 依赖倒转（倒置）原则4. 里氏替换原则5. 开闭原则6. 迪',
-                                goodCount: 1,
-                                commentCount: 0,
-                                viewCount: 184,
-                                user: {
-                                    id: 1,
-                                    name: 'Sakura',
-                                    avatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'
-                                },
-                                isChecked: false
-                            }
-                        ],
-                    },
-                    {
-                        id: 4,
-                        name: '定时任务补偿',
-                        count: 15,
-                        isPublic: true,
-                        description: '',
-                        invitations: [
-                            {
-                                articleId: 7,
-                                articleTitle: '使用Python对英雄联盟英雄数据进行聚类等分析 (字符串离散化)',
-                                articleContent: '一、字符串离散化上图是我们本次需要分析的数据, 有一个 tags 标签, 它代表每个英雄的属性, 每英雄的属性有多个',
-                                goodCount: 20,
-                                commentCount: 10,
-                                viewCount: 1000,
-                                user: {
-                                    id: 1,
-                                    name: 'Sakura',
-                                    avatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'
-                                },
-                                isChecked: false
-                            },
-                            {
-                                articleId: 8,
-                                articleTitle: '2020年 Java面试题整理 最新Java面试题2020',
-                                articleContent: '学Python的程序员建议收藏！',
-                                goodCount: 20,
-                                commentCount: 10,
-                                viewCount: 1000,
-                                user: {
-                                    id: 1,
-                                    name: 'Sakura',
-                                    avatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'
-                                },
-                                isChecked: false
-                            },
-                            {
-                                articleId: 9,
-                                articleTitle: '反转！“只问了1个框架，就给了35K的Python岗”',
-                                articleContent: '文章目录1、类加载和实例化2、Java是值传递还是引用传递3、类加载的主要过程4、什么是GC5、简述垃圾回收过程',
-                                goodCount: 0,
-                                commentCount: 10,
-                                viewCount: 234,
-                                user: {
-                                    id: 1,
-                                    name: 'Sakura',
-                                    avatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'
-                                },
-                                isChecked: false
-                            },
-                            {
-                                articleId: 10,
-                                articleTitle: 'SpringMVC框架|参数绑定',
-                                articleContent: '文章目录一、 简单数据类型绑定1.SpringMVC获得请求参数2.使用@RequestParam做映射二、pojo数据类型绑定1.简单',
-                                goodCount: 3,
-                                commentCount: 6,
-                                viewCount: 391,
-                                user: {
-                                    id: 1,
-                                    name: 'Sakura',
-                                    avatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'
-                                },
-                                isChecked: false
-                            },
-                            {
-                                articleId: 11,
-                                articleTitle: 'Python原来这么好学-1.1节:在windows中安装Python',
-                                articleContent: '目录1.1.1 在windows中安装python1.1.2 本节知识要点1.1.3 课后习题这是一本教同学们彻底学通Python的高质量学习',
-                                goodCount: 3,
-                                commentCount: 10,
-                                viewCount: 247,
-                                user: {
-                                    id: 1,
-                                    name: 'Sakura',
-                                    avatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'
-                                },
-                                isChecked: false
-                            }
-                        ]
-                    }
-                ],
-                newDialogVisible: false,
-                newFavorite: {
-                    name: '',
-                    description: '',
-                    isPublic: true
+        created() {
+            setTimeout(() => {
+                let userId = this.$store.getters.getUserId;
+                if (userId === undefined || userId <= 0) {
+                    return;
                 }
+                axios.get('http://localhost/collect/getFavorites', {
+                    params: {
+                        targetUserId: userId
+                    }
+                }).then(res => {
+                    let result = res.data;
+                    if (result.code === 200) {
+                        this.favorites = result.data.favorites;
+                    } else {
+                        this.$message({
+                            message: '获取收藏夹列表失败，请刷新重试',
+                            type: 'error',
+                            center: true,
+                            offset: 100
+                        });
+                    }
+                }).catch(err => {
+                    this.$message({
+                        message: '服务器打了个盹，请再试一次吧',
+                        type: 'error',
+                        center: true,
+                        offset: 100
+                    });
+                });
+            }, 1000);
+        },
+        data() {
+            let validateTitle = (rule, value, callback) => {
+                if (!value) {
+                    return callback(new Error('标题不能为空'));
+                } else if (value.length > 20) {
+                    return callback(new Error('标题最多20个字'));
+                }
+                callback();
+            };
+            let validateDescription = (rule, value, callback) => {
+                if (value.length > 50) {
+                    return callback(new Error("描述最多50个字"));
+                }
+                callback();
+            };
+            let validatePri = (rule, value, callback) => {
+                if (value !== true && value !== false) {
+                    return callback(new Error("无效的数据格式"));
+                }
+                callback();
+            };
+            return {
+                favorites: [],
+                newDialogVisible: false,
+                newFavorites: {
+                    title: '',
+                    description: '',
+                    pri: false
+                },
+                formRule: {
+                    title: [{ validator: validateTitle, trigger: 'blur' }],
+                    description: [{ validator: validateDescription, trigger: 'blur' }],
+                    pri:[{ validator: validatePri, trigger: 'blur' }]
+                },
+                activeName: '0'
             }
         },
         methods: {
             createFavorite() {
-                let temp = {
-                    id: this.favorites.length + 1,
-                    name: this.newFavorite.name,
-                    description: this.newFavorite.description,
-                    isPublic: this.newFavorite.isPublic,
-                    count: 0
-                };
-                this.favorites.push(temp);
-                this.newDialogVisible = false;
-                this.$refs['newFavorite'].resetFields();
+                this.$refs['newFavorite'].validate((valid) => {
+                    if (valid) {
+                        axios.put('http://localhost/collect/createFavorites', {
+                            title: this.newFavorites.title,
+                            description: this.newFavorites.description,
+                            pri: this.newFavorites.pri
+                        }).then(res => {
+                            let result = res.data;
+                            if (result.code === 200) {
+                                this.newDialogVisible = false;
+                                this.$refs['newFavorite'].resetFields();
+                                this.$message({
+                                    message: '创建收藏夹成功',
+                                    type: 'success',
+                                    center: true,
+                                    offset: 100
+                                });
+                            } else {
+                                this.$message({
+                                    message: result.msg,
+                                    type: 'error',
+                                    center: true,
+                                    offset: 100
+                                });
+                            }
+                        }).catch(err => {
+                            this.$message({
+                                message: '创建收藏夹失败',
+                                type: 'error',
+                                center: true,
+                                offset: 100
+                            });
+                        });
+                    }
+                });
             },
-            editFavorite(index, editFavorite) {
-                this.favorites[index] = editFavorite;
+            editFavorite(index, editFavorites) {
+                this.favorites[index] = editFavorites;
             },
             delFavorite(index) {
+                let temp = index - 1;
+                this.activeName = temp + '';
                 this.favorites.splice(index, 1);
             },
             moveToFavorite(src, target, srcFavorite, favorites) {
@@ -308,6 +209,10 @@
 </script>
 
 <style scoped>
+    .favorite {
+        padding-bottom: 30px;
+    }
+
     .favorite-header {
         font-size: 20px;
         font-weight: 700;
