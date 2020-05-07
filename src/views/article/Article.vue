@@ -5,7 +5,9 @@
                 <el-col :span="4"><!--style="transform: scale3d(1, 1, 1);"-->
                     <div class="table-of-content">
                         <div class="table-header">目录</div>
-                        <div id="table-of-content" :style="{width: width + 'px'}"></div>
+                        <div id="toc"
+                             :style="{width: width + 'px'}"
+                             class="vditor-reset"></div>
                     </div>
                 </el-col>
                 <el-col :span="15" :offset="4"> <!--:offset=4-->
@@ -52,9 +54,8 @@
                             </el-collapse>
                         </div>
                         <div class="article-body">
-                            <markdown-view ref="markdown"
-                                           :markdown="article.content"
-                                           @register="registerEvent"></markdown-view>
+                            <preview ref="preview"
+                                     :markdown="article.content"></preview>
                         </div>
                         <div class="article-body-foot">
                             <el-button-group>
@@ -249,19 +250,14 @@
 </template>
 
 <script>
-    import $ from 'jquery';
-    import MarkdownView from "@/views/article/MarkdownView";
+    import Preview from "@/views/article/Preview";
     import Comment from "@/views/article/Comment";
-    import contentOpen from '@/assets/image/content-open.svg';
-    import contentClose from '@/assets/image/content-close.svg';
     import {request} from "@/network/request";
-
 
     export default {
         name: "Article",
         created() {
             this.isLoading = true;
-            window.$ = window.jQuery = $;
             this.articleId = Number(this.$route.params.articleId);
             request({
                 url: "/article/article/" + this.articleId,
@@ -270,6 +266,7 @@
                 let result = res.data;
                 if (result.code === 200) {
                     this.article = result.data;
+                    this.$refs["preview"].setValue(this.article.content);
                     request({
                         url: "/interactive/isFollow",
                         method: "GET",
@@ -279,6 +276,11 @@
                     }).then(res => {
                         this.follow = res.data;
                     });
+                    setTimeout(() => {
+                        document.getElementsByClassName("el-main")[0]
+                            .addEventListener("scroll", this.listenScroll);
+                        this.isLoading = false;
+                    }, 500);
                 } else {
                     this.$message({
                         message: result.msg,
@@ -438,6 +440,7 @@
                             center: true,
                             offset: 100
                         });
+                        this.favoritesDialogVisible = false;
                     } else {
                         this.$message({
                             message: result.msg,
@@ -570,62 +573,32 @@
                 this.$refs.comment.onlyLandlord(this.isOnlyLandlord);
                 return this.isOnlyLandlord ? 'primary' : '';
             },
-            registerEvent() {
-                for(let item of $('.markdown-toc-list li')) {
-                    $(item).click(() => {
-                        let dom = $(event.target);
-                        event.stopPropagation();
-                        if (dom.attr('flag') === undefined || dom.attr('flag') === 'open') {
-                            dom.attr('flag', 'close');
-                            dom.css({'list-style': 'url(' + contentClose + ')'});
-                        } else {
-                            dom.attr('flag', 'open');
-                            dom.css({'list-style': 'url(' + contentOpen + ')'});
-                        }
-                        dom.children('ul').slideToggle()
-                    });
+            listenScroll() {
+                let lis = [...document.getElementById("toc")
+                    .querySelectorAll("ul > li")];
+                let divs = [...document.getElementById("preview")
+                    .querySelectorAll("h1,h2,h3,h4,h5,h6")];
+                let divHeights = [];
+                for (let i = 0; i < divs.length; i++) {
+                    divHeights.push(divs[i].getBoundingClientRect().top);
                 }
-                for (let item of $('.markdown-body pre')) {
-                    let button = $('<input type="button" value="复制" style="float: right;display: none">');
-                    button.click(() => {
-                        let dom = $(event.target);
-                        if (dom.val() !== '复制成功') {
-                            let el = dom.parent();
-                            let codeEl = $(el).find('code');
-                            let code = '';
-                            for (let temp of codeEl) {
-                                code += $(temp).children('span').text() + '\n';
-                            }
-                            let text = document.createElement('textarea');
-                            text.value = code;
-                            document.body.appendChild(text);
-                            text.select();
-                            document.execCommand('Copy');
-                            document.body.removeChild(text);
-                            dom.val('复制成功');
-                            this.$message({
-                                message: '此段代码已成功复制到您的剪贴板！',
-                                type: "success",
-                                offset: 100
-                            })
-                        }
-                        setTimeout(() => {
-                            dom.val('复制');
-                        }, 1000)
-                    });
-                    $(item).prepend(button);
-                    $(item).mouseover(() => {
-                        let el = $(event.currentTarget);
-                        $(el).children('input').css('display', 'inline-block');
-                    });
-                    $(item).mouseout(() => {
-                        let el = $(event.currentTarget);
-                        $(el).children('input').css('display', 'none');
-                    });
+                let scope = 200;
+                let k = 0;
+                for (let i = 0; i < divHeights.length; i++) {
+                    if (scope > divHeights[i] - scope) {
+                        k = i;
+                    }
                 }
-                setTimeout(() => {
-                    this.isLoading = false;
-                }, 1000);
+                lis[k].classList.add('current');
+                lis[k].scrollIntoView({
+                    behavior: "smooth",
+                    block: "center"
+                });
+                for (let i = 0; i < lis.length; i++) {
+                    if (i !== k) {
+                        lis[i].classList.remove('current');
+                    }
+                }
             }
         },
         computed: {
@@ -648,7 +621,7 @@
             }
         },
         components: {
-            MarkdownView,
+            Preview,
             Comment
         }
     }
@@ -704,6 +677,7 @@
     }
 
     .article-body-foot {
+        margin-top: 24px;
         text-align: center;
     }
 
@@ -845,15 +819,11 @@
         margin-right: .5rem;
     }
 
-    .content-parent {
-
-    }
-
     .table-of-content {
         position: fixed;
         background-color: #ffffff;
         border-radius: 4px;
-        padding-bottom: 16px;
+        overflow: hidden;
     }
 
     .table-header {
@@ -938,14 +908,83 @@
         z-index: 10001 !important;
     }
 
-    #table-of-content ul {
-        list-style: url("../../assets/image/content-open.svg");
-        padding-left: 35px;
+    #toc ul {
+        list-style: none;
+        padding: 0;
+        color: #6c757d;
+        max-height: 500px;
     }
 
-    #table-of-content ul li a {
+    #toc ul .toc-h1 {
+        padding-left: 12px;
+    }
+    #toc ul .toc-h2 {
+        padding-left: 24px;
+    }
+    #toc ul .toc-h3 {
+        padding-left: 36px;
+    }
+    #toc ul .toc-h4 {
+        padding-left: 48px;
+    }
+    #toc ul .toc-h5 {
+        padding-left: 60px;
+    }
+    #toc ul .toc-h6 {
+        padding-left: 72px;
+    }
+    #toc ul li a {
         font-size: 14px;
-        color: #6c757d;
+        color: inherit;
         text-decoration: none;
+        padding-left: 10px;
+        border-left: 1px solid transparent;
+        display: block;
+        line-height: 20px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    #toc ul .current, #toc ul .current-hover {
+        background-color: #AAAAAA;
+        color: #ffffff;
+        border-left: 4px solid rgba(67,135,244,.56);
+        font-weight: 700;
+    }
+
+    #toc {
+        overflow-y: auto;
+    }
+
+    #toc ul li:first-child {
+        margin-top: 6px;
+    }
+    #toc ul li:last-child {
+        margin-bottom: 6px;
+    }
+
+    #toc::-webkit-scrollbar {
+        width : 8px;
+        height: 1px;
+    }
+    #toc::-webkit-scrollbar-thumb {
+        border-radius   : 10px;
+        background-color: skyblue;
+        background-image: -webkit-linear-gradient(
+            45deg,
+            rgba(255, 255, 255, 0.2) 25%,
+            transparent 25%,
+            transparent 50%,
+            rgba(255, 255, 255, 0.2) 50%,
+            rgba(255, 255, 255, 0.2) 75%,
+            transparent 75%,
+            transparent
+        );
+    }
+    #toc::-webkit-scrollbar-track {
+        box-shadow   : inset 0 0 5px rgba(0, 0, 0, 0.2);
+        background   : #ededed;
+        border-radius: 10px;
     }
 </style>

@@ -45,45 +45,45 @@ export const LazyLoadImage = () => {
 // 1 - supre admin, 2 - blog admin, 3 - blog user, 4 - prohibit user, 0 - un login user
 export const genMenuData = (app, locale) => [
     {
-        title: app.$t('home', locale),
+        title: 'home',
         icon: 'home',
         link: '/admin/',
         role: 3
     },
     {
-        title: app.$t('postArticle', locale),
+        title: 'postArticle',
         icon: 'add',
         link: '/admin/articles/post',
         role: 3
     },
     {
-        title: app.$t('manage', locale),
+        title: 'manage',
         icon: 'manage',
         active: true,
         role: 3,
         items: [
             {
-                title: app.$t('articleList', locale),
+                title: 'articleList',
                 link: '/admin/articles',
                 role: 3
             },
             {
-                title: app.$t('commentList', locale),
+                title: 'commentList',
                 link: '/admin/comments',
                 role: 3
             },
             {
-                title: app.$t('categoryList', locale),
+                title: 'categoryList',
                 link: '/admin/categories',
                 role: 2
             },
             {
-                title: app.$t('navigationList', locale),
+                title: 'navigationList',
                 link: '/admin/navigations',
                 role: 2
             },
             {
-                title: app.$t('tagList', locale),
+                title: 'tagList',
                 link: '/admin/tags',
                 role: 2
             }
@@ -101,67 +101,67 @@ export const genMenuData = (app, locale) => [
         ]
     },
     {
-        title: app.$t('setting', locale),
+        title: 'setting',
         icon: 'setting',
         active: app.$route.path.indexOf('settings') > -1,
         role: 2,
         items: [
             {
-                title: app.$t('baseInfo', locale),
+                title: 'baseInfo',
                 link: '/admin/settings/basic',
                 role: 2
             },
             {
-                title: app.$t('themeList', locale),
+                title: 'themeList',
                 icon: 'theme',
                 link: '/admin/themes',
                 role: 2
             },
             {
-                title: app.$t('preference', locale),
+                title: 'preference',
                 link: '/admin/settings/preference',
                 role: 2
             },
             {
-                title: app.$t('signs', locale),
+                title: 'signs',
                 link: '/admin/settings/sign',
                 role: 2
             },
             {
-                title: app.$t('account', locale),
+                title: 'account',
                 link: '/admin/settings/account',
                 role: 2
             },
             {
-                title: app.$t('internationalization', locale),
+                title: 'internationalization',
                 link: '/admin/settings/i18n',
                 role: 2
             },
             {
-                title: app.$t('feed', locale),
+                title: 'feed',
                 link: '/admin/settings/feed',
                 role: 2
             },
             {
-                title: app.$t('3rdStatistic', locale),
+                title: '3rdStatistic',
                 link: '/admin/settings/3rd-statistic',
                 role: 2
             },
             {
-                title: app.$t('ad', locale),
+                title: 'ad',
                 link: '/admin/settings/ad',
                 role: 2
             }
         ]
     },
     {
-        title: app.$t('others', locale),
+        title: 'others',
         icon: 'inbox',
         link: '/admin/others',
         role: 3
     },
     {
-        title: app.$t('about', locale),
+        title: 'about',
         icon: 'info',
         link: '/admin/about',
         role: 3

@@ -7,7 +7,6 @@ import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
 import moment from 'moment';
 import './assets/iconfont/iconfont.css';
-import VueParticles from 'vue-particles';
 
 moment.locale('zh-cn');
 
@@ -52,7 +51,6 @@ Vue.filter('letter', (value) => {
 Vue.config.productionTip = false;
 
 Vue.use(ElementUI);
-Vue.use(VueParticles);
 
 router.beforeEach((to, from, next) => {
     NProgress.start();

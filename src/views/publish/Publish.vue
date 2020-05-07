@@ -79,8 +79,8 @@
                     </el-popover>
                 </el-form-item>
                 <el-form-item label="文章内容：">
-                    <markdown-editor class="markdown" ref="editor"></markdown-editor>
-                    <!--<markdown-editor2></markdown-editor2>-->
+                    <!--<markdown-editor class="markdown" ref="editor"></markdown-editor>-->
+                    <vditor ref="vditor"></vditor>
                 </el-form-item>
                 <el-form-item>
                     <el-button plain type="primary"
@@ -95,8 +95,7 @@
 </template>
 
 <script>
-    import MarkdownEditor from "@/views/publish/MarkdownEditor";
-    /*import MarkdownEditor2 from "@/views/publish/MarkdownEditor2";*/
+    import Vditor from "@/views/publish/Vditor";
     import {request} from "@/network/request";
 
     export default {
@@ -209,7 +208,7 @@
                     this.loading = false;
                     return;
                 }
-                if (this.$refs.editor.getMarkdown() === '') {
+                if (this.$refs.vditor.getValue() === '') {
                     this.$message({
                         message: '文章内容不能为空',
                         type: 'error',
@@ -235,7 +234,7 @@
                     method: "PUT",
                     data: {
                         title: this.title,
-                        content: this.$refs.editor.getMarkdown(),
+                        content: "[toc]\n\n" + this.$refs.vditor.getValue(),
                         tags: tagIds
                     }
                 }).then(res => {
@@ -310,7 +309,7 @@
             }
         },
         components: {
-            MarkdownEditor
+            Vditor
         }
     }
 </script>

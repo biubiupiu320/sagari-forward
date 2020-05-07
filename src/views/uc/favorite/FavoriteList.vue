@@ -273,7 +273,7 @@
                 let temp = [];
                 for (let i = 0; i < this.articles.length; i++) {
                     if (index !== i) {
-                        temp.push(this.articles[index]);
+                        temp.push(this.articles[i]);
                     }
                 }
                 this.cancelCollect(articleIds, temp);

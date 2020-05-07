@@ -81,6 +81,13 @@
                                          type="warning"
                                          @click="delArticle(index)">删除</el-link>
                             </span>
+                            <el-divider v-if="item.del" direction="vertical"></el-divider>
+                            <span>
+                                <el-link v-if="item.del"
+                                         :underline="false"
+                                         type="primary"
+                                         @click="restoreArticle(index)">恢复</el-link>
+                            </span>
                             <el-divider direction="vertical"></el-divider>
                             <span>
                                 <el-link :underline="false"
@@ -238,6 +245,41 @@
                         center: true,
                         offset: 100
                     });
+                });
+            },
+            restoreArticle(index) {
+                let id = this.articles[index].id;
+                request({
+                    url: "/article/restoreArticle",
+                    method: "GET",
+                    params: {
+                        articleId: id
+                    }
+                }).then(res => {
+                    let result = res.data;
+                    if (result.code === 200) {
+                        this.$message({
+                            message: "文章恢复成功",
+                            type: "success",
+                            center: true,
+                            offset: 100
+                        });
+                        this.articles[index].del = false;
+                    } else {
+                        this.$message({
+                            message: result.msg,
+                            type: "error",
+                            center: true,
+                            offset: 100
+                        });
+                    }
+                }).catch(err => {
+                    this.$message({
+                        message: "服务器打了个盹，请再试一次吧",
+                        type: "error",
+                        center: true,
+                        offset: 100
+                    })
                 });
             }
         }

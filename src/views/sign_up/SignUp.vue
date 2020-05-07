@@ -179,7 +179,7 @@
                 });
             };
             let validatePhone = (rule, value, callback) => {
-                if (!new RegExp(/0?(13|14|15|18|17)[0-9]{9}/).test(value)) {
+                if (!new RegExp(/0?(13|14|15|18|17|19)[0-9]{9}/).test(value)) {
                     return callback(new Error('请输入正确的手机号码'));
                 }
                 request({

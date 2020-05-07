@@ -10,5 +10,6 @@ module.exports = {
     },
     //publicPath: process.env.NODE_ENV === 'development' ? '/' : './',
     publicPath: '/',
-    outputDir: "dist"
+    outputDir: "dist",
+    productionSourceMap: false
 }
