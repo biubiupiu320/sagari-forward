@@ -72,7 +72,10 @@
                             </span>
                             <el-divider direction="vertical"></el-divider>
                             <span>
-                                <el-link :underline="false" type="primary">编辑</el-link>
+                                <el-link v-if="!item.del"
+                                         :underline="false"
+                                         type="primary"
+                                         @click="editArticle(index)">编辑</el-link>
                             </span>
                             <el-divider v-if="!item.del" direction="vertical"></el-divider>
                             <span>
@@ -181,69 +184,81 @@
                 this.lastType = this.type;
             },
             delArticle(index) {
-                let id = this.articles[index].id;
-                request({
-                    url: "/article/article/" + id,
-                    method: "DELETE"
-                }).then(res => {
-                    let result = res.data;
-                    if (result.code === 200) {
-                        this.articles.splice(index, 1);
+                this.$confirm("删除之后的文章可以在回收站内查看或恢复，是否继续？", "删除文章", {
+                    confirmButtonText: "确定",
+                    cancelButtonText: "取消",
+                    type: "warning"
+                }).then(() => {
+                    let id = this.articles[index].id;
+                    request({
+                        url: "/article/article/" + id,
+                        method: "DELETE"
+                    }).then(res => {
+                        let result = res.data;
+                        if (result.code === 200) {
+                            this.articles.splice(index, 1);
+                            this.$message({
+                                message: result.msg,
+                                type: "success",
+                                center: true,
+                                offset: 100
+                            });
+                        } else {
+                            this.$message({
+                                message: result.msg,
+                                type: "error",
+                                center: true,
+                                offset: 100
+                            });
+                        }
+                    }).catch(err => {
                         this.$message({
-                            message: result.msg,
-                            type: "success",
-                            center: true,
-                            offset: 100
-                        });
-                    } else {
-                        this.$message({
-                            message: result.msg,
+                            message: "服务器打了个盹，请再试一次吧",
                             type: "error",
                             center: true,
                             offset: 100
                         });
-                    }
-                }).catch(err => {
-                    this.$message({
-                        message: "服务器打了个盹，请再试一次吧",
-                        type: "error",
-                        center: true,
-                        offset: 100
                     });
                 });
             },
             delCompArticle(index) {
-                let id = this.articles[index].id;
-                request({
-                    url: "/article/deleteArticleComp",
-                    method: "DELETE",
-                    params: {
-                        articleId: id
-                    }
-                }).then(res => {
-                    let result = res.data;
-                    if (result.code === 200) {
-                        this.articles.splice(index, 1);
+                this.$confirm("彻底删除文章之后不可恢复，是否继续？", "彻底删除文章", {
+                    confirmButtonText: "确定",
+                    cancelButtonText: "取消",
+                    type: "warning"
+                }).then(() => {
+                    let id = this.articles[index].id;
+                    request({
+                        url: "/article/deleteArticleComp",
+                        method: "DELETE",
+                        params: {
+                            articleId: id
+                        }
+                    }).then(res => {
+                        let result = res.data;
+                        if (result.code === 200) {
+                            this.articles.splice(index, 1);
+                            this.$message({
+                                message: "彻底删除成功，数据不可恢复",
+                                type: "success",
+                                center: true,
+                                offset: 100
+                            });
+                        } else {
+                            this.$message({
+                                message: result.msg,
+                                type: "error",
+                                center: true,
+                                offset: 100
+                            });
+                        }
+                    }).catch(err => {
                         this.$message({
-                            message: "彻底删除成功，数据不可恢复",
-                            type: "success",
-                            center: true,
-                            offset: 100
-                        });
-                    } else {
-                        this.$message({
-                            message: result.msg,
+                            message: "服务器打了个盹，请再试一次吧",
                             type: "error",
                             center: true,
                             offset: 100
                         });
-                    }
-                }).catch(err => {
-                    this.$message({
-                        message: "服务器打了个盹，请再试一次吧",
-                        type: "error",
-                        center: true,
-                        offset: 100
                     });
                 });
             },
@@ -281,6 +296,15 @@
                         offset: 100
                     })
                 });
+            },
+            editArticle(index) {
+                this.$router.push({
+                    name: "publish",
+                    params: {
+                        id: this.articles[index].id,
+                        isEdit: "true"
+                    }
+                })
             }
         }
     }

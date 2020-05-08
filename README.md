@@ -1,4 +1,4 @@
-# sagiri
+# sagari
 
 ## Project setup
 ```

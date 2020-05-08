@@ -9,6 +9,7 @@ const routes = [
         component: () => import('@/views/home/Home')
     },
     {
+        name: 'publish',
         path: '/publish',
         component: () => import('@/views/publish/Publish')
     },

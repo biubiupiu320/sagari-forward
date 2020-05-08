@@ -18,7 +18,7 @@
                                    @click="bindOrUnbind('qq')">解绑</el-button>
                     </span>
                 </li>
-                <li class="platform-item" @click="bindOrUnbind('github')">
+                <!--<li class="platform-item" @click="bindOrUnbind('github')">
                     <img src="../../../assets/image/github.svg" alt="GitHub" class="platform-icon">
                     <span class="platform-name">GitHub</span>
                     <span class="platform-username">{{githubId}}</span>
@@ -31,7 +31,7 @@
                                    @click="bindOrUnbind('github')">解绑</el-button>
                     </span>
                 </li>
-                <!--<li class="platform-item" @click="bindOrUnbind('weibo')">
+                <li class="platform-item" @click="bindOrUnbind('weibo')">
                     <img src="../../../assets/image/weibo.svg" alt="微博" class="platform-icon">
                     <span class="platform-name">新浪微博</span>
                     <span class="platform-username">{{bindWeiBo.username}}</span>
@@ -43,7 +43,7 @@
                                    v-else
                                    @click="bindOrUnbind('weibo')">解绑</el-button>
                     </span>
-                </li>-->
+                </li>
                 <li class="platform-item" @click="bindOrUnbind('baidu')">
                     <img src="../../../assets/image/baidu.svg" alt="百度" class="platform-icon">
                     <span class="platform-name">百度</span>
@@ -56,7 +56,7 @@
                                    v-else
                                    @click="bindOrUnbind('baidu')">解绑</el-button>
                     </span>
-                </li>
+                </li>-->
             </ul>
         </div>
     </div>
@@ -100,8 +100,6 @@
         data() {
             return {
                 qqId: '',
-                baiduId: '',
-                githubId: '',
                 isLoading: false
             }
         },
@@ -112,49 +110,41 @@
                         if (this.qqId === '') {
                             window.location.href="https://graph.qq.com/oauth2.0/authorize?response_type=code&client_id=101864484&redirect_uri=http://sagari.cn/qq_callback&state=1";
                         } else {
-                            request({
-                                url: "/user/unbindQQ",
-                                method: "GET"
-                            }).then(res => {
-                                let result = res.data;
-                                if (result.code === 200) {
+                            this.$confirm("解绑QQ账号之后将不能再使用QQ登录您的账号，是否继续？", "解绑QQ账号", {
+                                confirmButtonText: "确定",
+                                cancelButtonText: "取消",
+                                type: "warning"
+                            }).then(() => {
+                                request({
+                                    url: "/user/unbindQQ",
+                                    method: "GET"
+                                }).then(res => {
+                                    let result = res.data;
+                                    if (result.code === 200) {
+                                        this.$message({
+                                            message: "解绑成功",
+                                            type: "success",
+                                            center: true,
+                                            offset: 100
+                                        });
+                                        this.qqId = "";
+                                    } else {
+                                        this.$message({
+                                            message: result.msg,
+                                            type: "error",
+                                            center: true,
+                                            offset: 100
+                                        });
+                                    }
+                                }).catch(err => {
                                     this.$message({
-                                        message: "解绑成功",
-                                        type: "success",
-                                        center: true,
-                                        offset: 100
-                                    });
-                                    this.qqId = "";
-                                } else {
-                                    this.$message({
-                                        message: result.msg,
+                                        message: "服务器打了个盹，请再试一次吧",
                                         type: "error",
                                         center: true,
                                         offset: 100
                                     });
-                                }
-                            }).catch(err => {
-                                this.$message({
-                                    message: "服务器打了个盹，请再试一次吧",
-                                    type: "error",
-                                    center: true,
-                                    offset: 100
                                 });
                             });
-                        }
-                        break;
-                    case 'github':
-                        if (this.githubId === '') {
-
-                        } else {
-
-                        }
-                        break;
-                    case 'baidu':
-                        if (this.baiduId === '') {
-
-                        } else {
-
                         }
                         break;
                 }

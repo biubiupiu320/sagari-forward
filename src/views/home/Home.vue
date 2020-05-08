@@ -49,8 +49,8 @@
                                 <a href="https://graph.qq.com/oauth2.0/authorize?response_type=code&client_id=101864484&redirect_uri=http://sagari.cn/qq_callback&state=1">
                                     <img src="../../assets/image/qq.svg" alt="QQ" class="oauth-btn">
                                 </a>
-                                <img src="../../assets/image/github.svg" alt="Github" class="oauth-btn">
-                                <img src="../../assets/image/weibo.svg" alt="新浪微博" class="oauth-btn">
+                                <!--<img src="../../assets/image/github.svg" alt="Github" class="oauth-btn">
+                                <img src="../../assets/image/weibo.svg" alt="新浪微博" class="oauth-btn">-->
                             </div>
                         </div>
                         <div class="popular-tags">

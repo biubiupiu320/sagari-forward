@@ -8,7 +8,10 @@
         </div>
         <div class="favorite-body">
             <el-tabs :stretch="true" v-model="activeName">
-                <el-tab-pane v-for="(item, index) in favorites" :label="item.title" :name="index + ''" :lazy="true">
+                <el-tab-pane v-for="(item, index) in favorites"
+                             :label="item.title"
+                             :name="index + ''"
+                             :lazy="true">
                     <favorite-list :index="index"
                                    :favorites="favorites"
                                    :current-favorites="item"
@@ -19,11 +22,10 @@
                 </el-tab-pane>
             </el-tabs>
         </div>
-        <el-dialog
-            :visible.sync="newDialogVisible"
-            width="30%"
-            :show-close="false"
-            class="new">
+        <el-dialog :visible.sync="newDialogVisible"
+                   width="30%"
+                   :show-close="false"
+                   class="new">
             <template v-slot:title>
                 <div class="new-header">新建收藏夹</div>
             </template>

@@ -21,7 +21,7 @@
                 <el-form-item prop="avatar" label="用户头像" id="avatar">
                     <el-upload
                         class="avatar-uploader"
-                        action="http://39.96.47.184/file/upload"
+                        action="http://data.sagari.cn/file/upload"
                         :data="{type:1}"
                         :show-file-list="false"
                         :on-success="handleAvatarSuccess"
@@ -102,6 +102,11 @@
             <el-divider>免注册登录</el-divider>
             <ul>
                 <li>
+                    <a href="https://graph.qq.com/oauth2.0/authorize?response_type=code&client_id=101864484&redirect_uri=http://sagari.cn/qq_callback&state=1">
+                        <img src="../../assets/image/qq.svg" alt="QQ登录">
+                    </a>
+                </li>
+                <!--<li>
                     <a>
                         <img src="../../assets/image/github.svg" alt="GitHub登录">
                     </a>
@@ -110,7 +115,7 @@
                     <a>
                         <img src="../../assets/image/weibo.svg" alt="新浪微博登录">
                     </a>
-                </li>
+                </li>-->
             </ul>
         </div>
     </div>

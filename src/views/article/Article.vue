@@ -141,11 +141,16 @@
                                 <el-col :span="22">
                                     <el-input type="textarea"
                                               placeholder="写下你的评论..."
+                                              v-if="!disabled"
                                               :autosize="{minRows: 4, maxRows: 8}"
                                               v-model="content"
                                               resize="none"
                                               class="comment-write-textarea"
                                               @focus="commentButtonShow = true"></el-input>
+                                    <div v-else
+                                         class="no-login">
+                                        <a href="/sign_in">登录</a>&nbsp;之后才可以评论哦(#^.^#)
+                                    </div>
                                 </el-col>
                             </el-row>
                             <el-collapse-transition>
@@ -203,9 +208,9 @@
                                                 {{article.user.username}}
                                             </el-link>
                                         </div>
-                                        <div class="author-description">
+                                        <!--<div class="author-description">
                                             我啥都不知道嘻嘻嘻嘻嘻嘻嘻嘻
-                                        </div>
+                                        </div>-->
                                     </el-col>
                                 </el-row>
                                 <div class="author-info">
@@ -302,6 +307,7 @@
             setTimeout(() => {
                 this.user = this.$store.getters.getUser;
                 this.userId = this.$store.getters.getUserId;
+                this.disabled = !this.$store.getters.isLogin;
             }, 1000);
             request({
                 url: "/search/getRelateArticle",
@@ -339,7 +345,8 @@
                 favoritesDialogVisible: false,
                 follow: false,
                 isFollowing: false,
-                isLoading: false
+                isLoading: false,
+                disabled: true
             }
         },
         methods: {
@@ -830,6 +837,20 @@
         font-size: 16px;
         padding: 12px 15px;
         border-bottom: 1px solid #ebeef5;
+    }
+
+    .no-login {
+        padding: 12px 16px !important;
+        background-color: #FAFAFA !important;
+        font-size: 13px;
+        border: 1px solid #eee;
+        outline-style: none;
+        font-family: -apple-system,sans-serif;
+        font-weight: 400;
+        height: 86px;
+        line-height: 86px;
+        text-align: center;
+        border-radius: 4px;
     }
 </style>
 

@@ -50,12 +50,12 @@
                         <img src="../../assets/image/qq.svg" alt="QQ登录">
                     </a>
                 </li>
-                <li>
+                <!--<li>
                     <a><img src="../../assets/image/github.svg" alt="GitHub登录"></a>
                 </li>
                 <li>
                     <a><img src="../../assets/image/weibo.svg" alt="新浪微博登录"></a>
-                </li>
+                </li>-->
             </ul>
         </div>
     </div>
@@ -117,7 +117,7 @@
                                             offset: 100
                                         });
                                         setTimeout(() => {
-                                            this.jump('/');
+                                            window.location.href = "/";
                                         }, 1000);
                                     } else {
                                         this.$message({

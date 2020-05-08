@@ -21,12 +21,15 @@
             </div>
             <ul v-loading="loading">
                 <li v-show="isManageMode && articles.length !== 0">
-                    <el-checkbox :indeterminate="isIndeterminate" v-model="isCheckAll" @change="checkAll">全选</el-checkbox>
+                    <el-checkbox :indeterminate="isIndeterminate"
+                                 v-model="isCheckAll"
+                                 @change="checkAll">全选</el-checkbox>
                 </li>
                 <li class="blog" v-for="(item, index) in articles">
                     <el-row>
                         <el-col v-show="isManageMode" :span="1">
-                            <el-checkbox v-model="item.isChecked" @change="check"></el-checkbox>
+                            <el-checkbox v-model="item.isChecked"
+                                         @change="check"></el-checkbox>
                         </el-col>
                         <el-col :span="isManageMode ? 23 : 24">
                             <div class="blog-title">
@@ -193,7 +196,9 @@
                 if (result.code === 200) {
                     let data = result.data;
                     this.articles = data.articles;
-                    this.$set(this.articles, 'isChecked', false);
+                    for (let i = 0; i < this.articles.length; i++) {
+                        this.$set(this.articles[i], 'isChecked', false);
+                    }
                     delete data.articles;
                     this.pagination = data;
                     this.loading = false;
@@ -325,6 +330,7 @@
                 let checkCount = this.articles.filter(item => item.isChecked).length;
                 this.isCheckAll = checkCount === this.articles.length;
                 this.isIndeterminate = checkCount > 0 && checkCount < this.articles.length;
+                console.log(this.articles)
             },
             checkAll(val) {
                 for (let item of this.articles) {
@@ -483,7 +489,9 @@
                     if (result.code === 200) {
                         let data = result.data;
                         this.articles = data.articles;
-                        this.$set(this.articles, 'isChecked', false);
+                        for (let i = 0; i < this.articles.length; i++) {
+                            this.$set(this.articles[i], 'isChecked', false);
+                        }
                         delete data.articles;
                         this.pagination = data;
                         this.loading = false;

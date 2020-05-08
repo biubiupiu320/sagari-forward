@@ -79,15 +79,15 @@
                     </el-popover>
                 </el-form-item>
                 <el-form-item label="文章内容：">
-                    <!--<markdown-editor class="markdown" ref="editor"></markdown-editor>-->
                     <vditor ref="vditor"></vditor>
                 </el-form-item>
                 <el-form-item>
-                    <el-button plain type="primary"
+                    <el-button plain
+                               type="primary"
                                class="pull-right"
                                @click="submit"
                                :loading="loading"
-                               style="float: right">发布文章</el-button>
+                               style="float: right">{{isEdit ? "修改文章": "发布文章"}}</el-button>
                 </el-form-item>
             </el-form>
         </el-col>
@@ -100,6 +100,62 @@
 
     export default {
         name: "Publish",
+        created() {
+            this.isLoading = true;
+            if (this.$route.params.isEdit === "true") {
+                this.isEdit = true;
+                this.id = this.$route.params.id;
+            }
+            request({
+                url: "/tag/getTag",
+                method: "GET"
+            }).then(res => {
+                let result = res.data;
+                if (result.code === 200) {
+                    this.category = result.data.category;
+                    if (this.isEdit) {
+                        request({
+                            url: "/article/article/" + this.id,
+                            method: "GET"
+                        }).then(res => {
+                            let result = res.data;
+                            if (result.code === 200) {
+                                let article = result.data;
+                                this.title = article.title;
+                                this.$refs.vditor.setValue(article.content);
+                                this.tags = article.tags;
+                            } else {
+                                this.$message({
+                                    message: result.msg,
+                                    type: 'error',
+                                    center: true,
+                                    offset: 100
+                                });
+                            }
+                            this.isLoading = false;
+                        }).catch(err => {
+                            this.$message({
+                                message: "服务器打了个盹，请刷新重试",
+                                type: 'error',
+                                center: true,
+                                offset: 100
+                            });
+                            this.isLoading = false;
+                        });
+                    } else {
+                        this.isLoading = false;
+                    }
+                }
+            }).catch(err => {
+                this.$message({
+                    message: '服务器打了个盹，请刷新重试',
+                    type: 'error',
+                    center: true,
+                    offset: 100
+                });
+                this.isLoading = false;
+            });
+        },
         data() {
             return {
                 title: '',
@@ -112,34 +168,15 @@
                     categoryId: undefined,
                     title: ''
                 },
-                isLoading: false
+                isLoading: false,
+                isEdit: false,
+                id: 0
             }
         },
         computed: {
             tagCount() {
                 return this.tags.length;
             }
-        },
-        created() {
-            this.isLoading = true;
-            request({
-                url: "/tag/getTag",
-                method: "GET"
-            }).then(res => {
-                let result = res.data;
-                if (result.code === 200) {
-                    this.category = result.data.category;
-                }
-                this.isLoading = false;
-            }).catch(err => {
-                this.$message({
-                    message: '服务器打了个盹，请刷新重试',
-                    type: 'error',
-                    center: true,
-                    offset: 100
-                });
-                this.isLoading = false;
-            });
         },
         methods: {
             addTag(index1, index2) {
@@ -229,42 +266,82 @@
                     return;
                 }
                 let tagIds = this.tags.map(item => item.id).join(',');
-                request({
-                    url: "/article/article",
-                    method: "PUT",
-                    data: {
-                        title: this.title,
-                        content: "[toc]\n\n" + this.$refs.vditor.getValue(),
-                        tags: tagIds
-                    }
-                }).then(res => {
-                    let result = res.data;
-                    if (result.code === 200) {
+                if (this.isEdit) {
+                    request({
+                        url: "/article/article/" + this.id,
+                        method: "POST",
+                        data: {
+                            id: this.id,
+                            title: this.title,
+                            content: "[toc]\n\n" + this.$refs.vditor.getValue(),
+                            tags: tagIds
+                        }
+                    }).then(res => {
+                        let result = res.data;
+                        if (result.code === 200) {
+                            this.$message({
+                                message: result.msg,
+                                type: 'success',
+                                center: true,
+                                offset: 100
+                            });
+                            this.$router.replace('/');
+                        } else {
+                            this.$message({
+                                message: result.msg,
+                                type: 'error',
+                                center: true,
+                                offset: 100
+                            });
+                        }
+                        this.loading = false;
+                    }).catch(err => {
                         this.$message({
-                            message: result.msg,
-                            type: 'success',
-                            center: true,
-                            offset: 100
-                        });
-                        this.$router.replace('/');
-                    } else {
-                        this.$message({
-                            message: result.msg,
+                            message: '文章发布失败，请稍后重试',
                             type: 'error',
                             center: true,
                             offset: 100
                         });
-                    }
-                    this.loading = false;
-                }).catch(err => {
-                    this.$message({
-                        message: '文章发布失败，请稍后重试',
-                        type: 'error',
-                        center: true,
-                        offset: 100
+                        this.loading = false;
                     });
-                    this.loading = false;
-                });
+                } else {
+                    request({
+                        url: "/article/article",
+                        method: "PUT",
+                        data: {
+                            title: this.title,
+                            content: "[toc]\n\n" + this.$refs.vditor.getValue(),
+                            tags: tagIds
+                        }
+                    }).then(res => {
+                        let result = res.data;
+                        if (result.code === 200) {
+                            this.$message({
+                                message: result.msg,
+                                type: 'success',
+                                center: true,
+                                offset: 100
+                            });
+                            this.$router.replace('/');
+                        } else {
+                            this.$message({
+                                message: result.msg,
+                                type: 'error',
+                                center: true,
+                                offset: 100
+                            });
+                        }
+                        this.loading = false;
+                    }).catch(err => {
+                        this.$message({
+                            message: '文章发布失败，请稍后重试',
+                            type: 'error',
+                            center: true,
+                            offset: 100
+                        });
+                        this.loading = false;
+                    });
+                }
             },
             createTag() {
                 this.isLoading = true;

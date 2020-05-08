@@ -428,87 +428,93 @@
                 });
             },
             del(index, childIndex) {
-                if (this.userId === undefined || this.userId === null || this.userId <= 0) {
-                    this.$message({
-                        message: '您需要登录之后才能删除评论',
-                        type: 'error',
-                        center: true,
-                        offset: 100
-                    });
-                    return;
-                }
-                let comment = this.comments[index];
-                if (childIndex === undefined) {
-                    request({
-                        url: "/comment/comment-parent/" + comment.id,
-                        method: "DELETE",
-                        params: {
-                            userId: this.userId,
-                            articleId: this.articleId
-                        }
-                    }).then(res => {
-                        let result = res.data;
-                        if (result.code === 200) {
-                            this.$message({
-                                message: '删除评论成功',
-                                type: 'error',
-                                center: true,
-                                offset: 100
-                            });
-                            this.comments.splice(index, 1);
-                        } else {
-                            this.$message({
-                                message: result.msg,
-                                type: 'error',
-                                center: true,
-                                offset: 100
-                            });
-                        }
-                    }).catch(err => {
+                this.$confirm("评论删除之后无法恢复，是否继续？", "删除评论", {
+                    confirmButtonText: "确定",
+                    cancelButtonText: "取消",
+                    type: "warning"
+                }).then(() => {
+                    if (this.userId === undefined || this.userId === null || this.userId <= 0) {
                         this.$message({
-                            message: '删除评论失败，请再试一次吧',
+                            message: '您需要登录之后才能删除评论',
                             type: 'error',
                             center: true,
                             offset: 100
                         });
-                    });
-                } else {
-                    let childComment = comment.child[childIndex];
-                    request({
-                        url: "/comment/comment-child/" + childComment.id,
-                        method: "DELETE",
-                        params: {
-                            userId: this.userId,
-                            articleId: this.articleId,
-                            parentId: childComment.parentId
-                        }
-                    }).then(res => {
-                        let result = res.data;
-                        if (result.code === 200) {
+                        return;
+                    }
+                    let comment = this.comments[index];
+                    if (childIndex === undefined) {
+                        request({
+                            url: "/comment/comment-parent/" + comment.id,
+                            method: "DELETE",
+                            params: {
+                                userId: this.userId,
+                                articleId: this.articleId
+                            }
+                        }).then(res => {
+                            let result = res.data;
+                            if (result.code === 200) {
+                                this.$message({
+                                    message: '删除评论成功',
+                                    type: 'success',
+                                    center: true,
+                                    offset: 100
+                                });
+                                this.comments.splice(index, 1);
+                            } else {
+                                this.$message({
+                                    message: result.msg,
+                                    type: 'error',
+                                    center: true,
+                                    offset: 100
+                                });
+                            }
+                        }).catch(err => {
                             this.$message({
-                                message: '删除评论成功',
+                                message: '删除评论失败，请再试一次吧',
                                 type: 'error',
                                 center: true,
                                 offset: 100
                             });
-                            this.comments[index].child.splice(childIndex, 1);
-                        } else {
-                            this.$message({
-                                message: result.msg,
-                                type: 'error',
-                                center: true,
-                                offset: 100
-                            });
-                        }
-                    }).catch(err => {
-                        this.$message({
-                            message: '删除评论失败，请再试一次吧',
-                            type: 'error',
-                            center: true,
-                            offset: 100
                         });
-                    });
-                }
+                    } else {
+                        let childComment = comment.child[childIndex];
+                        request({
+                            url: "/comment/comment-child/" + childComment.id,
+                            method: "DELETE",
+                            params: {
+                                userId: this.userId,
+                                articleId: this.articleId,
+                                parentId: childComment.parentId
+                            }
+                        }).then(res => {
+                            let result = res.data;
+                            if (result.code === 200) {
+                                this.$message({
+                                    message: '删除评论成功',
+                                    type: 'error',
+                                    center: true,
+                                    offset: 100
+                                });
+                                this.comments[index].child.splice(childIndex, 1);
+                            } else {
+                                this.$message({
+                                    message: result.msg,
+                                    type: 'error',
+                                    center: true,
+                                    offset: 100
+                                });
+                            }
+                        }).catch(err => {
+                            this.$message({
+                                message: '删除评论失败，请再试一次吧',
+                                type: 'error',
+                                center: true,
+                                offset: 100
+                            });
+                        });
+                    }
+                });
             },
             preContent(index, childIndex) {
                 let comment = this.comments[index];

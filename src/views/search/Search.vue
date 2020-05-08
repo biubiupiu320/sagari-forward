@@ -135,27 +135,15 @@
                         titleRemoveTag = title.replace(/<b>/g, '');
                         titleRemoveTag = titleRemoveTag.replace(/<\/b>/g, '');
                         let titleSource = result._source.title;
-                        result._source.title = titleSource.replace(new RegExp(titleRemoveTag, 'g'), title);
+                        result._source.title = titleSource.replace(titleRemoveTag, title);
                     }
                     let contentTemp = result.highlight.content;
                     let content = '';
-                    let contentRemoveTag = '';
                     if (contentTemp !== undefined) {
                         for (const temp of contentTemp) {
                             content += temp;
                         }
-                        contentRemoveTag = content.replace(/<b>/g, '');
-                        contentRemoveTag = contentRemoveTag.replace(/<\/b>/g, '');
-                        let contentSource = result._source.content;
-                        let index = contentSource.indexOf(contentRemoveTag);
-                        let startIndex = index - 100;
-                        let endIndex = index + 100;
-                        if (startIndex < 0) {
-                            startIndex = 0;
-                            endIndex += 100;
-                        }
-                        let contentSub = contentSource.substring(startIndex, endIndex);
-                        result._source.content = contentSub.replace(new RegExp(contentRemoveTag, 'g'), content);
+                        result._source.content = content;
                     } else {
                         result._source.content = result._source.content.substring(0, 300);
                     }
