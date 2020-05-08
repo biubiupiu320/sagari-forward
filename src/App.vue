@@ -61,6 +61,7 @@
         color: #666;
         padding: 15px 0;
         background: rgb(235, 235, 235);
+        z-index: 1;
     }
 
     .footer a {
