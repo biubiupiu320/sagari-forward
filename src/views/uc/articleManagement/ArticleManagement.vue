@@ -66,32 +66,37 @@
                         </div>
                         <div class="article-item-right">
                             <span>
-                                <el-link :underline="false"
+                                <el-link v-if="!item.del"
+                                         :underline="false"
                                          :href="'/article/' + item.id"
                                          type="primary">查看</el-link>
                             </span>
-                            <el-divider direction="vertical"></el-divider>
+                            <el-divider v-if="!item.del"
+                                        direction="vertical"></el-divider>
                             <span>
                                 <el-link v-if="!item.del"
                                          :underline="false"
                                          type="primary"
                                          @click="editArticle(index)">编辑</el-link>
                             </span>
-                            <el-divider v-if="!item.del" direction="vertical"></el-divider>
+                            <el-divider v-if="!item.del"
+                                        direction="vertical"></el-divider>
                             <span>
                                 <el-link v-if="!item.del"
                                          :underline="false"
                                          type="warning"
                                          @click="delArticle(index)">删除</el-link>
                             </span>
-                            <el-divider v-if="item.del" direction="vertical"></el-divider>
+                            <el-divider v-if="!item.del"
+                                        direction="vertical"></el-divider>
                             <span>
                                 <el-link v-if="item.del"
                                          :underline="false"
                                          type="primary"
                                          @click="restoreArticle(index)">恢复</el-link>
                             </span>
-                            <el-divider direction="vertical"></el-divider>
+                            <el-divider v-if="item.del"
+                                        direction="vertical"></el-divider>
                             <span>
                                 <el-link :underline="false"
                                          type="warning"
