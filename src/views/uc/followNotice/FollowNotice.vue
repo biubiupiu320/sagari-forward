@@ -16,7 +16,9 @@
                             size="mini"
                             v-if="!item.read"
                             :disable-transitions="true">未读</el-tag>
-                    <el-link type="primary">{{item.fromUsername}}</el-link>
+                    <el-link :href="'/user/' + item.fromId"
+                             target="_blank"
+                             type="primary">{{item.fromUsername}}</el-link>
                     <span style="margin-left: 5px">关注了你</span>
                     <span style="float: right;">
                         <span class="follow-notice-time">{{item.createTime | letter}}</span>

@@ -8,20 +8,17 @@
         </div>
         <div class="blog-content" v-html="data.content"></div>
         <div>
-            <span>
-                <el-popover placement="top-start"
-                            width="200"
-                            trigger="hover"
-                            content="我不会使用双截棍">
-                    <span slot="reference" class="blog-user">
-                        <el-link :underline="false">
-                            <el-avatar :size="24" :src="data.user.avatar">
-                                <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png"/>
-                            </el-avatar>
-                        </el-link>&nbsp;
-                        <el-link :underline="false">{{data.user.username}}</el-link>
-                    </span>
-                </el-popover>
+            <span class="blog-user">
+                <el-link :underline="false"
+                         :href="'/user/' + data.user.id"
+                         target="_blank">
+                    <el-avatar :size="24" :src="data.user.avatar">
+                        <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png"/>
+                    </el-avatar>
+                </el-link>&nbsp;
+                <el-link :underline="false"
+                         :href="'/user/' + data.user.id"
+                         target="_blank">{{data.user.username}}</el-link>
             </span>
             <span class="blog-info">
                 <el-link :underline="false"

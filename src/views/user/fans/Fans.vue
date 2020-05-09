@@ -1,92 +1,96 @@
 <template>
     <div class="user-fans">
         <ul class="user-fans-list">
-            <li class="user-fans-item">
-                <el-link :underline="false">
-                    <el-avatar :size="48" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png">
+            <li class="user-fans-item" v-for="item in fans">
+                <el-link :underline="false"
+                         :href="'/user/' + item.id"
+                         target="_blank">
+                    <el-avatar :size="48" :src="item.avatar">
                         <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png"/>
                     </el-avatar>
                 </el-link>
                 <span class="user-fans-item-nickname">
-                    <el-link>嘻嘻</el-link>
+                    <el-link :href="'/user/' + item.id"
+                             target="_blank">{{item.username}}</el-link>
                 </span>
-                <span class="user-fans-item-btn">
+                <!--<span class="user-fans-item-btn">
                     <el-button type="primary" size="small">关注</el-button>
                     <el-button size="small" icon="el-icon-check">已关注</el-button>
-                </span>
+                </span>-->
             </li>
-            <li class="user-fans-item">
-                <el-link :underline="false">
-                    <el-avatar :size="48" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png">
-                        <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png"/>
-                    </el-avatar>
-                </el-link>
-                <span class="user-fans-item-nickname">
-                    <el-link>嘻嘻</el-link>
-                </span>
-                <span class="user-fans-item-btn">
-                    <el-button type="primary" size="small">关注</el-button>
-                    <el-button size="small" icon="el-icon-check">已关注</el-button>
-                </span>
-            </li>
-            <li class="user-fans-item">
-                <el-link :underline="false">
-                    <el-avatar :size="48" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png">
-                        <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png"/>
-                    </el-avatar>
-                </el-link>
-                <span class="user-fans-item-nickname">
-                    <el-link>嘻嘻</el-link>
-                </span>
-                <span class="user-fans-item-btn">
-                    <el-button type="primary" size="small">关注</el-button>
-                    <el-button size="small" icon="el-icon-check">已关注</el-button>
-                </span>
-            </li>
-            <li class="user-fans-item">
-                <el-link :underline="false">
-                    <el-avatar :size="48" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png">
-                        <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png"/>
-                    </el-avatar>
-                </el-link>
-                <span class="user-fans-item-nickname">
-                    <el-link>嘻嘻</el-link>
-                </span>
-                <span class="user-fans-item-btn">
-                    <el-button type="primary" size="small">关注</el-button>
-                    <el-button size="small" icon="el-icon-check">已关注</el-button>
-                </span>
-            </li>
-            <li class="user-fans-item">
-                <el-link :underline="false">
-                    <el-avatar :size="48" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png">
-                        <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png"/>
-                    </el-avatar>
-                </el-link>
-                <span class="user-fans-item-nickname">
-                    <el-link>嘻嘻</el-link>
-                </span>
-                <span class="user-fans-item-btn">
-                    <el-button type="primary" size="small">关注</el-button>
-                    <el-button size="small" icon="el-icon-check">已关注</el-button>
-                </span>
+            <li class="user-fans-item no-content" v-if="fans.length === 0">
+                这家伙竟然一个粉丝都没有...
             </li>
         </ul>
         <div class="user-fans-pagination">
-            <el-pagination
-                :background="true"
-                layout="prev, pager, next"
-                :total="50">
+            <el-pagination hide-on-single-page
+                           :background="true"
+                           layout="prev, pager, next"
+                           :total="pagination.total"
+                           @current-change="handleCurrentChange">
             </el-pagination>
         </div>
     </div>
 </template>
 
 <script>
+    import {request} from "@/network/request";
+
     export default {
         name: "Fans",
         created() {
-            console.log('fans created')
+            this.getFans();
+        },
+        data() {
+            return {
+                isLoading: false,
+                fans: [],
+                pagination: {
+                    total: 0
+                }
+            }
+        },
+        props: {
+            userId: {
+                type: Number,
+                default: 0
+            }
+        },
+        methods: {
+            getFans(page = 1, size = 10) {
+                this.isLoading = true;
+                request({
+                    url: "/interactive/getFansList",
+                    method: "GET",
+                    params: {
+                        followId: this.userId,
+                        page,
+                        size
+                    }
+                }).then(res => {
+                    let result = res.data;
+                    if (result.code === 200) {
+                        if (result.data.fans != null) {
+                            this.fans = result.data.fans;
+                        }
+                        delete result.data.fans;
+                        this.pagination = result.data;
+                    } else {
+                        this.$message({
+                            message: result.msg,
+                            type: "error",
+                            center: true,
+                            offset: 100
+                        });
+                    }
+                    this.isLoading = false;
+                }).catch(err => {
+                    this.isLoading = false;
+                });
+            },
+            handleCurrentChange(page) {
+                this.getFans(page);
+            }
         }
     }
 </script>
@@ -123,5 +127,16 @@
     .user-fans-pagination {
         margin: 30px 0;
         text-align: center;
+    }
+
+    .no-content {
+        text-align: center;
+        padding: 35px;
+        font-size: 18px;
+        color: #999999;
+    }
+
+    .user-fans ul li:last-child {
+        border: none;
     }
 </style>

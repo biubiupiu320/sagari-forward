@@ -391,7 +391,6 @@
                         articleId: this.articleId,
                         authorId: this.author,
                         content: content,
-                        fromId: this.userId,
                         parentId: comment.id,
                         toId: comment.toId,
                         childId: this.childId
@@ -433,22 +432,12 @@
                     cancelButtonText: "取消",
                     type: "warning"
                 }).then(() => {
-                    if (this.userId === undefined || this.userId === null || this.userId <= 0) {
-                        this.$message({
-                            message: '您需要登录之后才能删除评论',
-                            type: 'error',
-                            center: true,
-                            offset: 100
-                        });
-                        return;
-                    }
                     let comment = this.comments[index];
                     if (childIndex === undefined) {
                         request({
                             url: "/comment/comment-parent/" + comment.id,
                             method: "DELETE",
                             params: {
-                                userId: this.userId,
                                 articleId: this.articleId
                             }
                         }).then(res => {
@@ -483,7 +472,6 @@
                             url: "/comment/comment-child/" + childComment.id,
                             method: "DELETE",
                             params: {
-                                userId: this.userId,
                                 articleId: this.articleId,
                                 parentId: childComment.parentId
                             }
@@ -640,8 +628,7 @@
                     comment.isChildLoading = false;
                 });
             }
-        },
-        computed: {}
+        }
     }
 </script>
 

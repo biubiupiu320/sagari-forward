@@ -1,123 +1,104 @@
 <template>
-    <div class="user-blogs">
+    <div class="user-blogs" v-loading="isLoading">
         <ul>
-            <li class="user-blog">
-                <h3><el-link>ElementUI的el-datepicker组件的default-value不起作用</el-link></h3>
-                <div class="user-blog-content">
-                    ElementUI的el-datepicker组件的default-value不起作用ElementUI的el-datepicker组件的default-value不起作用
-                    ElementUI的el-datepicker组件的default-value不起作用ElementUI的el-datepicker组件的default-value不起作用
-                    ElementUI的el-datepicker组件的default-value不起作用ElementUI的el-datepicker组件的default-value不起作用
-                    ElementUI的el-datepicker组件的default-value不起作用ElementUI的el-datepicker组件的default-value不起作用
-                </div>
+            <li class="user-blog" v-for="item in articles">
+                <h3>
+                    <el-link :href="'/article/' + item.id"
+                             target="_blank">{{item.title}}</el-link></h3>
+                <div class="user-blog-content">{{item.content}}</div>
                 <div class="user-blog-info">
-                    <span><i class="iconfont el-icon-ali-good"></i>6</span>
+                    <span><i class="iconfont el-icon-ali-good"></i>{{item.goodCount}}</span>
                     <el-divider direction="vertical"></el-divider>
-                    <span><i class="iconfont el-icon-ali-view"></i>26</span>
+                    <span><i class="iconfont el-icon-ali-view"></i>{{item.viewCount}}</span>
                     <el-divider direction="vertical"></el-divider>
-                    <span><i class="iconfont el-icon-ali-comments"></i>16</span>
-                    <span style="float: right;">2020-3-2 17:15:35</span>
+                    <span><i class="iconfont el-icon-ali-comments"></i>{{item.commentCount}}</span>
+                    <span style="float: right;">{{item.createTime | dateFrm}}</span>
                 </div>
             </li>
-            <li class="user-blog">
-                <h3><el-link>ElementUI的el-datepicker组件的default-value不起作用</el-link></h3>
-                <div class="user-blog-content">
-                    ElementUI的el-datepicker组件的default-value不起作用ElementUI的el-datepicker组件的default-value不起作用
-                    ElementUI的el-datepicker组件的default-value不起作用ElementUI的el-datepicker组件的default-value不起作用
-                    ElementUI的el-datepicker组件的default-value不起作用ElementUI的el-datepicker组件的default-value不起作用
-                    ElementUI的el-datepicker组件的default-value不起作用ElementUI的el-datepicker组件的default-value不起作用
-                </div>
-                <div class="user-blog-info">
-                    <span><i class="iconfont el-icon-ali-good"></i>6</span>
-                    <el-divider direction="vertical"></el-divider>
-                    <span><i class="iconfont el-icon-ali-view"></i>26</span>
-                    <el-divider direction="vertical"></el-divider>
-                    <span><i class="iconfont el-icon-ali-comments"></i>16</span>
-                    <span style="float: right;">2020-3-2 17:15:35</span>
-                </div>
-            </li>
-            <li class="user-blog">
-                <h3><el-link>ElementUI的el-datepicker组件的default-value不起作用</el-link></h3>
-                <div class="user-blog-content">
-                    ElementUI的el-datepicker组件的default-value不起作用ElementUI的el-datepicker组件的default-value不起作用
-                    ElementUI的el-datepicker组件的default-value不起作用ElementUI的el-datepicker组件的default-value不起作用
-                    ElementUI的el-datepicker组件的default-value不起作用ElementUI的el-datepicker组件的default-value不起作用
-                    ElementUI的el-datepicker组件的default-value不起作用ElementUI的el-datepicker组件的default-value不起作用
-                </div>
-                <div class="user-blog-info">
-                    <span><i class="iconfont el-icon-ali-good"></i>6</span>
-                    <el-divider direction="vertical"></el-divider>
-                    <span><i class="iconfont el-icon-ali-view"></i>26</span>
-                    <el-divider direction="vertical"></el-divider>
-                    <span><i class="iconfont el-icon-ali-comments"></i>16</span>
-                    <span style="float: right;">2020-3-2 17:15:35</span>
-                </div>
-            </li>
-            <li class="user-blog">
-                <h3><el-link>ElementUI的el-datepicker组件的default-value不起作用</el-link></h3>
-                <div class="user-blog-content">
-                    ElementUI的el-datepicker组件的default-value不起作用ElementUI的el-datepicker组件的default-value不起作用
-                    ElementUI的el-datepicker组件的default-value不起作用ElementUI的el-datepicker组件的default-value不起作用
-                    ElementUI的el-datepicker组件的default-value不起作用ElementUI的el-datepicker组件的default-value不起作用
-                    ElementUI的el-datepicker组件的default-value不起作用ElementUI的el-datepicker组件的default-value不起作用
-                </div>
-                <div class="user-blog-info">
-                    <span><i class="iconfont el-icon-ali-good"></i>6</span>
-                    <el-divider direction="vertical"></el-divider>
-                    <span><i class="iconfont el-icon-ali-view"></i>26</span>
-                    <el-divider direction="vertical"></el-divider>
-                    <span><i class="iconfont el-icon-ali-comments"></i>16</span>
-                    <span style="float: right;">2020-3-2 17:15:35</span>
-                </div>
-            </li>
-            <li class="user-blog">
-                <h3><el-link>ElementUI的el-datepicker组件的default-value不起作用</el-link></h3>
-                <div class="user-blog-content">
-                    ElementUI的el-datepicker组件的default-value不起作用ElementUI的el-datepicker组件的default-value不起作用
-                    ElementUI的el-datepicker组件的default-value不起作用ElementUI的el-datepicker组件的default-value不起作用
-                    ElementUI的el-datepicker组件的default-value不起作用ElementUI的el-datepicker组件的default-value不起作用
-                    ElementUI的el-datepicker组件的default-value不起作用ElementUI的el-datepicker组件的default-value不起作用
-                </div>
-                <div class="user-blog-info">
-                    <span><i class="iconfont el-icon-ali-good"></i>6</span>
-                    <el-divider direction="vertical"></el-divider>
-                    <span><i class="iconfont el-icon-ali-view"></i>26</span>
-                    <el-divider direction="vertical"></el-divider>
-                    <span><i class="iconfont el-icon-ali-comments"></i>16</span>
-                    <span style="float: right;">2020-3-2 17:15:35</span>
-                </div>
-            </li>
-            <li class="user-blog">
-                <h3><el-link>ElementUI的el-datepicker组件的default-value不起作用</el-link></h3>
-                <div class="user-blog-content">
-                    ElementUI的el-datepicker组件的default-value不起作用ElementUI的el-datepicker组件的default-value不起作用
-                    ElementUI的el-datepicker组件的default-value不起作用ElementUI的el-datepicker组件的default-value不起作用
-                    ElementUI的el-datepicker组件的default-value不起作用ElementUI的el-datepicker组件的default-value不起作用
-                    ElementUI的el-datepicker组件的default-value不起作用ElementUI的el-datepicker组件的default-value不起作用
-                </div>
-                <div class="user-blog-info">
-                    <span><i class="iconfont el-icon-ali-good"></i>6</span>
-                    <el-divider direction="vertical"></el-divider>
-                    <span><i class="iconfont el-icon-ali-view"></i>26</span>
-                    <el-divider direction="vertical"></el-divider>
-                    <span><i class="iconfont el-icon-ali-comments"></i>16</span>
-                    <span style="float: right;">2020-3-2 17:15:35</span>
-                </div>
+            <li class="user-blog no-content" v-if="articles.length === 0">
+                这家伙还没发表过文章...
             </li>
         </ul>
         <div class="user-blogs-pagination">
-            <el-pagination layout="prev, pager, next"
+            <el-pagination hide-on-single-page
+                           layout="prev, pager, next"
                            :background="true"
-                           :total="50">
+                           :total="pagination.total"
+                           @current-change="handleCurrentChange">
             </el-pagination>
         </div>
     </div>
 </template>
 
 <script>
+    import {request} from "@/network/request";
+    import {defaultConfig} from "@/config/previewConfig";
+    import Vditor from "vditor";
+
     export default {
         name: "Blog",
         created() {
-            console.log('blog created');
+            this.getArticle();
+        },
+        data() {
+            return {
+                isLoading: false,
+                articles: [],
+                pagination: {
+                    total: 0
+                }
+            }
+        },
+        props: {
+            userId: {
+                type: Number,
+                default: 0
+            }
+        },
+        methods: {
+            getArticle(page = 1, size = 10) {
+                this.isLoading = true;
+                request({
+                    url: "/article/getArticleByAuthor",
+                    method: "GET",
+                    params: {
+                        author: this.userId,
+                        page,
+                        size
+                    }
+                }).then(res => {
+                    let result = res.data;
+                    if (result.code === 200) {
+                        this.articles = result.data.list.map(item => {
+                            Vditor.md2html(item.content, defaultConfig).then(res => {
+                                item.content = res.replace(/<.*?>/ig, "");
+                            });
+                            return item;
+                        });
+                        delete result.data.list;
+                        this.pagination = result.data;
+                    } else {
+                        this.$message({
+                            message: result.msg,
+                            type: "error",
+                            center: true,
+                            offset: 100
+                        });
+                    }
+                    this.isLoading = false;
+                }).catch(err => {
+                    this.$message({
+                        message: "服务器打了个盹，请刷新重试",
+                        type: "error",
+                        center: true,
+                        offset: 100
+                    });
+                    this.isLoading = false;
+                });
+            },
+            handleCurrentChange(page) {
+                this.getArticle(page);
+            }
         }
     }
 </script>
@@ -170,5 +151,16 @@
     .user-blogs-pagination {
         margin: 24px 0;
         text-align: center;
+    }
+
+    .no-content {
+        text-align: center;
+        padding: 35px;
+        font-size: 18px;
+        color: #999999;
+    }
+
+    .user-blogs ul li:last-child {
+        border: none;
     }
 </style>

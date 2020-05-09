@@ -245,7 +245,8 @@
                     this.loading = false;
                     return;
                 }
-                if (this.$refs.vditor.getValue() === '') {
+                let markdown = this.$refs.vditor.getValue();
+                if (markdown === '') {
                     this.$message({
                         message: '文章内容不能为空',
                         type: 'error',
@@ -254,6 +255,13 @@
                     });
                     this.loading = false;
                     return;
+                }
+                let judgeIndex = markdown.indexOf("[toc]");
+                if (judgeIndex === -1) {
+                    markdown = "[toc]\n\n" + markdown;
+                } else if (judgeIndex > 0) {
+                    markdown = markdown.replace("[toc]", "");
+                    markdown = "[toc]\n\n" + markdown;
                 }
                 if (!this.$store.getters.isLogin) {
                     this.$message({
@@ -273,7 +281,7 @@
                         data: {
                             id: this.id,
                             title: this.title,
-                            content: "[toc]\n\n" + this.$refs.vditor.getValue(),
+                            content: markdown,
                             tags: tagIds
                         }
                     }).then(res => {
@@ -310,7 +318,7 @@
                         method: "PUT",
                         data: {
                             title: this.title,
-                            content: "[toc]\n\n" + this.$refs.vditor.getValue(),
+                            content: markdown,
                             tags: tagIds
                         }
                     }).then(res => {

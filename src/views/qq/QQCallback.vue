@@ -31,7 +31,7 @@
                     this.$alert(result.msg, "此账号已被封禁", {
                         confirmButtonText: "确定",
                         callback: action => {
-                            this.$router.push("/");
+                            window.location.href = "/";
                         }
                     });
                 } else {

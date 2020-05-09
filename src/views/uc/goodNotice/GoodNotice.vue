@@ -18,7 +18,10 @@
                                 :disable-transitions="true"
                                 v-if="!item.read">未读</el-tag>
                         <span class="good-notice-list-item-title">
-                            <el-link type="primary" style="margin-left: 0;">{{item.fromUsername}}</el-link>
+                            <el-link :href="'/user/' + item.fromId"
+                                     target="_blank"
+                                     type="primary"
+                                     style="margin-left: 0;">{{item.fromUsername}}</el-link>
                             <span v-if="item.type === 1">赞了你的文章</span>
                             <span v-if="item.type === 2">赞了你的评论</span>
                             <span v-if="item.type === 3">赞了你的评论</span>

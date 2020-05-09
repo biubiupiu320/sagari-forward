@@ -11,14 +11,18 @@
             <ul>
                 <li v-for="(item, index) in fans">
                     <span class="fans-avatar">
-                        <el-link :underline="false">
+                        <el-link :underline="false"
+                                 :href="'/user/' + item.id"
+                                 target="_blank">
                             <el-avatar :size="50" :src="item.avatar">
                                 <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png"/>
                             </el-avatar>
                         </el-link>
                     </span>
                     <span class="fans-name">
-                        <el-link :underline="false">{{item.username}}</el-link>
+                        <el-link :underline="false"
+                                 :href="'/user/' + item.id"
+                                 target="_blank">{{item.username}}</el-link>
                     </span>
                     <span class="fans-btn">
                         <el-button size="small"

@@ -151,7 +151,7 @@
                     if (valid) {
                         request({
                             url: "/collect/createFavorites",
-                            method: "POST",
+                            method: "PUT",
                             data: {
                                 title: this.newFavorites.title,
                                 description: this.newFavorites.description,

@@ -43,12 +43,16 @@
                             </div>
                             <div>
                                 <span class="blog-user">
-                                    <el-link :underline="false">
+                                    <el-link :underline="false"
+                                             :href="'/user/' + item.id"
+                                             target="_blank">
                                         <el-avatar :size="24" :src="item.user.avatar">
                                             <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png"/>
                                         </el-avatar>
                                     </el-link>&nbsp;
-                                    <el-link :underline="false">{{item.user.username}}</el-link>
+                                    <el-link :underline="false"
+                                             :href="'/user/' + item.id"
+                                             target="_blank">{{item.user.username}}</el-link>
                                 </span>
                                 <span class="blog-info">
                                     <el-link :underline="false"
@@ -67,12 +71,16 @@
                         </el-col>
                     </el-row>
                 </li>
+                <li class="no-content" v-if="articles.length === 0">
+                    空空如也(ｷ｀ﾟДﾟ´)!!
+                </li>
             </ul>
             <div class="pagination">
-                <el-pagination
-                    layout="prev, pager, next"
-                    :total="pagination.total"
-                    @current-change="switchCurrentPage">
+                <el-pagination hide-on-single-page
+                               layout="prev, pager, next"
+                               :background="true"
+                               :total="pagination.total"
+                               @current-change="switchCurrentPage">
                 </el-pagination>
             </div>
         </div>
@@ -178,48 +186,13 @@
 
 <script>
     import {request} from "@/network/request";
+    import Vditor from "vditor";
+    import {defaultConfig} from "@/config/previewConfig";
 
     export default {
         name: "FavoriteList",
         created() {
-            this.loading = true;
-            request({
-                url: "/collect/getCollect",
-                method: "GET",
-                params: {
-                    favoritesId: this.currentFavorites.id,
-                    page: 1,
-                    size: 10
-                }
-            }).then(res => {
-                let result = res.data;
-                if (result.code === 200) {
-                    let data = result.data;
-                    this.articles = data.articles;
-                    for (let i = 0; i < this.articles.length; i++) {
-                        this.$set(this.articles[i], 'isChecked', false);
-                    }
-                    delete data.articles;
-                    this.pagination = data;
-                    this.loading = false;
-                } else {
-                    this.loading = false;
-                    this.$message({
-                        message: result.msg,
-                        type: 'error',
-                        center: true,
-                        offset: 100
-                    });
-                }
-            }).catch(err => {
-                this.loading = false;
-                this.$message({
-                    message: '服务器打了个盹，请刷新重试',
-                    type: 'error',
-                    center: true,
-                    offset: 100
-                });
-            });
+            this.switchCurrentPage(1);
         },
         data() {
             let validateTitle = (rule, value, callback) => {
@@ -488,9 +461,17 @@
                     let result = res.data;
                     if (result.code === 200) {
                         let data = result.data;
-                        this.articles = data.articles;
-                        for (let i = 0; i < this.articles.length; i++) {
-                            this.$set(this.articles[i], 'isChecked', false);
+                        if (data.articles !== null) {
+                            this.articles = data.articles;
+                            for (let i = 0; i < this.articles.length; i++) {
+                                this.$set(this.articles[i], 'isChecked', false);
+                                this.articles.map(item => {
+                                    Vditor.md2html(item.content, defaultConfig).then(res => {
+                                        item.content = res.replace(/<.*?>/ig, "");
+                                    });
+                                    return item;
+                                })
+                            }
                         }
                         delete data.articles;
                         this.pagination = data;
@@ -638,6 +619,13 @@
 
     .del-body {
         padding: 25px 16px;
+    }
+
+    .no-content {
+        text-align: center;
+        padding: 35px 0 !important;
+        font-size: 18px;
+        color: #999999;
     }
 </style>
 

@@ -55,6 +55,8 @@
     import Article from "@/views/search/Article";
     import Tag from "@/views/search/Tag";
     import User from "@/views/search/User";
+    import Vditor from "vditor";
+    import {defaultConfig} from "@/config/previewConfig";
 
     export default {
         name: "Search",
@@ -144,8 +146,22 @@
                             content += temp;
                         }
                         result._source.content = content;
+                        Vditor.md2html(result._source.content, defaultConfig).then(res => {
+                            res = res.replace(/<b>/ig, "!b!");
+                            res = res.replace(/<\/b>/ig, "!/b!");
+                            result._source.content = res.replace(/<.*?>/ig, "");
+                            result._source.content = result._source.content.replace(/!b!/ig, "<b>");
+                            result._source.content = result._source.content.replace(/!\/b!/ig, "</b>");
+                        });
                     } else {
                         result._source.content = result._source.content.substring(0, 300);
+                        Vditor.md2html(result._source.content, defaultConfig).then(res => {
+                            res = res.replace(/<b>/ig, "!b!");
+                            res = res.replace(/<\/b>/ig, "!/b!");
+                            result._source.content = res.replace(/<.*?>/ig, "");
+                            result._source.content = result._source.content.replace(/!b!/ig, "<b>");
+                            result._source.content = result._source.content.replace(/!\/b!/ig, "</b>");
+                        });
                     }
                     delete result.highlight;
                 }

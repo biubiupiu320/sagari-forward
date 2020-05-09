@@ -11,12 +11,16 @@
                 <div class="blog-content">{{item.content}}</div>
                 <div>
                     <span class="blog-user">
-                        <el-link :underline="false">
+                        <el-link :underline="false"
+                                 :href="'/user/' + item.user.id"
+                                 target="_blank">
                             <el-avatar :size="24" :src="item.user.avatar">
-                                        <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png"/>
+                                <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png"/>
                             </el-avatar>
                         </el-link>&nbsp;
-                        <el-link :underline="false">{{item.user.username}}</el-link>
+                        <el-link :underline="false"
+                                 :href="'/user/' + item.user.id"
+                                 target="_blank">{{item.user.username}}</el-link>
                     </span>
                     <span class="blog-info">
                         <el-link :underline="false" class="iconfont el-icon-ali-good">{{item.goodCount}}</el-link>
@@ -36,6 +40,8 @@
 
 <script>
     import {request} from "@/network/request";
+    import Vditor from "vditor";
+    import {defaultConfig} from "@/config/previewConfig";
 
     export default {
         name: "Invitation",
@@ -89,6 +95,12 @@
                     let result = res.data;
                     if (result.code === 200) {
                         let temps = result.data.result.map(item => item._source);
+                        temps = temps.map(item => {
+                            Vditor.md2html(item.content, defaultConfig).then(res => {
+                                item.content = res.replace(/<.*?>/ig, "");
+                            });
+                            return item;
+                        })
                         for (const temp of temps) {
                             this.invitations.push(temp)
                         }

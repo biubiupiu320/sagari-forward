@@ -208,9 +208,9 @@
                                                 {{article.user.username}}
                                             </el-link>
                                         </div>
-                                        <!--<div class="author-description">
-                                            我啥都不知道嘻嘻嘻嘻嘻嘻嘻嘻
-                                        </div>-->
+                                        <div class="author-description">
+                                            {{article.user.introduction}}
+                                        </div>
                                     </el-col>
                                 </el-row>
                                 <div class="author-info">
@@ -544,8 +544,7 @@
                     method: "POST",
                     data: {
                         articleId: this.articleId,
-                        content: this.content,
-                        userId: this.userId
+                        content: this.content
                     }
                 }).then(res => {
                     let result = res.data;

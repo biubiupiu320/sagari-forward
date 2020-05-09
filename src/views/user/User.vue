@@ -1,25 +1,32 @@
 <template>
     <el-row style="padding-top: 20px;">
         <el-col :span="14" :offset="5" class="user">
-            <div class="business-card">
+            <div class="business-card" v-loading="isLoading">
                 <div class="business-card-avatar">
-                    <el-avatar :size="100" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png">
+                    <el-avatar :size="100" :src="user.avatar">
                         <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png"/>
                     </el-avatar>
                 </div>
                 <div class="business-card-body">
-                    <p class="nickname">Sakura0408</p>
+                    <p class="nickname">{{user.username}}</p>
                     <div class="introduction">
                         <i class="el-icon-postcard" title="简介"></i>
-                        <p>发就打可能否卡迪那法看电视方块那段十块饭卡十多年付款纳斯达克发能打开焚枯食淡饭卡打死你看焚枯食淡饭卡
-                            打死你客服那倒是看女生宿舍宿舍所所所所所所所所所所所所所所所所所所所所所所所所所所所所所所所所所所
-                            所所所所所所所所所</p>
+                        <p>{{user.introduction === null ? "这个家伙很懒，什么都没有留下..." : user.introduction}}</p>
                     </div>
                 </div>
                 <div class="business-card-right">
-                    <el-button type="primary" size="medium">关注</el-button>
-                    <el-button size="medium" icon="el-icon-check">已关注</el-button>
-                    <el-button type="success" size="medium">私信</el-button>
+                    <el-button v-if="!isFollow"
+                               type="primary"
+                               size="medium"
+                               :loading="following"
+                               @click="follow">关注</el-button>
+                    <el-button v-else
+                               size="medium"
+                               icon="el-icon-check"
+                               :loading="following"
+                               @click="cancelFollow">已关注</el-button>
+                    <el-button type="success"
+                               size="medium">私信</el-button>
                 </div>
                 <div style="clear: both"></div>
             </div>
@@ -28,30 +35,30 @@
                     <el-tab-pane :lazy="true">
                         <template v-slot:label>
                             <span>博客</span>
-                            <span>12</span>
+                            <!--<span>{{user.articleCount}}</span>-->
                         </template>
-                        <blog></blog>
+                        <blog :user-id="id"></blog>
                     </el-tab-pane>
                     <el-tab-pane :lazy="true">
                         <template v-slot:label>
                             <span>收藏</span>
-                            <span>54</span>
+                            <!--<span>54</span>-->
                         </template>
-                        <favorite></favorite>
+                        <favorite :user-id="id"></favorite>
                     </el-tab-pane>
                     <el-tab-pane :lazy="true">
                         <template v-slot:label>
                             <span>TA的关注</span>
-                            <span>12</span>
+                            <!--<span>{{user.followCount}}</span>-->
                         </template>
-                        <follow></follow>
+                        <follow :user-id="id"></follow>
                     </el-tab-pane>
                     <el-tab-pane :lazy="true">
                         <template v-slot:label>
                             <span>TA的粉丝</span>
-                            <span>12</span>
+                            <!--<span>{{user.fansCount}}</span>-->
                         </template>
-                        <fans></fans>
+                        <fans :user-id="id"></fans>
                     </el-tab-pane>
                 </el-tabs>
             </div>
@@ -64,9 +71,128 @@
     import Favorite from "@/views/user/favorite/Favorite";
     import Follow from "@/views/user/follow/Follow";
     import Fans from "@/views/user/fans/Fans";
+    import {request} from "@/network/request";
 
     export default {
         name: "User",
+        created() {
+            this.isLoading = true;
+            this.id = Number(this.$route.params.userId);
+            if (this.id <= 0) {
+                this.$router.push("/");
+            }
+            request({
+                url: "/user/getSimpleUser",
+                method: "GET",
+                params: {
+                    id: this.id
+                }
+            }).then(res => {
+                let result = res.data;
+                if (result.code === 200) {
+                    this.user = result.data;
+                    request({
+                        url: "/interactive/isFollow",
+                        method: "GET",
+                        params: {
+                            followId: this.id
+                        }
+                    }).then(res => {
+                        this.isFollow = res.data;
+                    });
+                }
+                this.isLoading = false;
+            }).catch(err => {
+                this.isLoading = false;
+            });
+        },
+        data() {
+            return {
+                id: 0,
+                user: {},
+                isFollow: false,
+                isLoading: false,
+                following: false
+            }
+        },
+        methods: {
+            follow() {
+                this.following = true;
+                request({
+                    url: "/interactive/follow",
+                    method: "PUT",
+                    params: {
+                        followId: this.id
+                    }
+                }).then(res => {
+                    let result = res.data;
+                    if (result.code === 200) {
+                        this.$message({
+                            message: "关注成功",
+                            type: "success",
+                            center: true,
+                            offset: 100
+                        });
+                        this.isFollow = true;
+                    } else {
+                        this.$message({
+                            message: result.msg,
+                            type: "error",
+                            center: true,
+                            offset: 100
+                        });
+                    }
+                    this.following = false;
+                }).catch(err => {
+                    this.$message({
+                        message: "服务器打了个盹，请再试一次吧",
+                        type: "error",
+                        center: true,
+                        offset: 100
+                    });
+                    this.following = false;
+                });
+            },
+            cancelFollow() {
+                this.following = true;
+                let ids = [];
+                ids.push(this.id);
+                request({
+                    url: "/interactive/cancelFollow",
+                    method: "POST",
+                    data: {
+                        followIds: ids
+                    }
+                }).then(res => {
+                    let result = res.data;
+                    if (result.code === 200) {
+                        this.$message({
+                            message: "取消关注成功",
+                            type: "success",
+                            center: true,
+                            offset: 100
+                        });
+                        this.isFollow = false;
+                    } else {
+                        this.$message({
+                            message: result.msg,
+                            type: "error",
+                            center: true,
+                            offset: 100
+                        });
+                    }
+                    this.following = false;
+                }).catch(err => {
+                    this.$message({
+                        message: "服务器打了个盹，请再试一次吧",
+                        type: "error",
+                        center: true,
+                        offset: 100
+                    });
+                    this.following = false;
+                });
+            }
+        },
         components: {
             Favorite,
             Follow,
