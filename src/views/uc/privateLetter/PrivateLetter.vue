@@ -41,7 +41,7 @@
                 </div>
             </el-col>
             <el-col :span="16" style="height: 100%;display: inline-block">
-                <div class="private-letter-right" v-if="persons.length !== 0">
+                <div class="private-letter-right" v-if="persons.length !== 0 && activeIndex !== -1">
                     <div class="private-letter-right-header">{{persons[activeIndex].toUsername}}</div>
                     <div class="private-letter-right-body" id="letter-body">
                         <div style="text-align: center">
@@ -147,7 +147,7 @@
                 webSocket: null,
                 user: {},
                 persons: [],
-                activeIndex: 0,
+                activeIndex: -1,
                 isLoading: false,
                 fileList: [],
                 previewList: []
@@ -173,16 +173,25 @@
                     for (let person of this.persons) {
                         this.$set(person, 'page', 1);
                         this.$set(person, 'size', 10);
-                        if (person.msg.indexOf("http://sagari") !== -1) {
+                        if (person.msg.indexOf("http://sagari.oss") !== -1) {
                             person.msg = "[图片]"
+                        }
+                    }
+                    let newPerson = this.$route.params.person;
+                    if (newPerson !== undefined) {
+                        let personsIds = this.persons.map(item => item.id);
+                        let index = personsIds.indexOf(newPerson.id);
+                        if (index !== -1) {
+                            this.handleSelect(index);
+                        } else {
+                            this.persons.unshift(newPerson);
+                            this.handleSelect(0);
                         }
                     }
                 }
             }).catch(err => {
 
             });
-        },
-        mounted() {
         },
         methods: {
             createSocket() {
@@ -257,7 +266,8 @@
                     this.activeIndex = index;
                     let toId = this.persons[index].toId;
                     let size = this.persons[index].page * this.persons[index].size;
-                    this.getLetters(toId, 1, size);
+                    this.message = [];
+                    this.getLetters(toId, 0, size);
                     this.scrollBottom();
                 }
             },
@@ -345,9 +355,11 @@
             },
             handleData() {
                 for (let item of this.message) {
-                    this.$set(item, "urls", []);
+                    if (item.urls === undefined || item.urls.length === 0) {
+                        this.$set(item, "urls", []);
+                    }
                     let msg = item.msg;
-                    if (msg.indexOf("http://sagari") !== -1) {
+                    if (msg.indexOf("http://sagari.oss") !== -1) {
                         let urls = msg.split(",");
                         for (let url of urls) {
                             item.urls.push(url);
@@ -357,9 +369,11 @@
                 }
             },
             handleDataSingle(data) {
-                this.$set(data, "urls", []);
+                if (data.urls === undefined || data.urls.length === 0) {
+                    this.$set(data, "urls", []);
+                }
                 let msg = data.msg;
-                if (msg.indexOf("http://sagari") !== -1) {
+                if (msg.indexOf("http://sagari.oss") !== -1) {
                     let urls = msg.split(",");
                     for (let url of urls) {
                         data.urls.push(url);

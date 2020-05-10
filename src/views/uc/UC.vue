@@ -19,8 +19,9 @@
 
     export default {
         name: "UC",
-        data() {
-            return {
+        created() {
+            if (!this.$store.getters.isLogin) {
+                this.$router.replace("/sign_in");
             }
         },
         methods: {

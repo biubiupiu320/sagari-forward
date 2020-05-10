@@ -4,7 +4,9 @@
             <div class="comment-header" @mouseover="showReply(index)" @mouseout="hideReply(index)">
                 <el-row>
                     <el-col :span="2">
-                        <el-link :underline="false">
+                        <el-link :underline="false"
+                                 :href="'/user/' + comment.user.id"
+                                 target="_blank">
                             <el-avatar :size="48" :src="comment.user.avatar">
                                 <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png"/>
                             </el-avatar>
@@ -12,7 +14,10 @@
                     </el-col>
                     <el-col :span="17">
                         <div class="commenter-name">
-                            <el-link :underline="false" style="margin-right: 5px">{{comment.user.username}}</el-link>
+                            <el-link :underline="false"
+                                     :href="'/user/' + comment.user.id"
+                                     target="_blank"
+                                     style="margin-right: 5px">{{comment.user.username}}</el-link>
                             <el-tag size="mini"
                                     effect="plain"
                                     v-if="comment.userId === author">作者</el-tag>
@@ -58,7 +63,9 @@
                                  @mouseout="hideReply(index, childIndex)">
                                 <el-row>
                                     <el-col :span="2">
-                                        <el-link :underline="false">
+                                        <el-link :underline="false"
+                                                 :href="'/user/' + childComment.fromId"
+                                                 target="_blank">
                                             <el-avatar :size="48" :src="childComment.fromAvatar">
                                                 <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png"/>
                                             </el-avatar>
@@ -66,7 +73,10 @@
                                     </el-col>
                                     <el-col :span="16">
                                         <div class="commenter-name">
-                                            <el-link :underline="false" style="margin-right: 5px">{{childComment.fromUsername}}</el-link>
+                                            <el-link :underline="false"
+                                                     :href="'/user/' + childComment.fromId"
+                                                     target="_blank"
+                                                     style="margin-right: 5px">{{childComment.fromUsername}}</el-link>
                                             <el-tag size="mini"
                                                     effect="plain"
                                                     v-if="childComment.fromId === author">作者</el-tag>
@@ -106,6 +116,8 @@
                                                 <el-link slot="reference"
                                                          type="primary"
                                                          :underline="false"
+                                                         :href="'/user/' + childComment.toId"
+                                                         target="_blank"
                                                          style="font-size: 16px">{{childComment.toUsername}}</el-link>
                                                 <div>你好啊</div>
                                             </el-popover>&nbsp;:

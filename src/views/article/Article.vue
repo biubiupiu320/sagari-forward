@@ -98,7 +98,9 @@
                         <div class="article-foot">
                             <el-row>
                                 <el-col :span="2">
-                                    <el-link :underline="false">
+                                    <el-link :underline="false"
+                                             :href="'/user/' + article.user.id"
+                                             target="_blank">
                                         <el-avatar :size="48" :src="article.user.avatar">
                                             <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png"/>
                                         </el-avatar>
@@ -106,7 +108,9 @@
                                 </el-col>
                                 <el-col :span="16">
                                     <div class="article-foot-center-top">
-                                        <el-link :underline="false">{{article.user.username}}</el-link>
+                                        <el-link :underline="false"
+                                                 :href="'/user/' + article.user.id"
+                                                 target="_blank">{{article.user.username}}</el-link>
                                     </div>
                                     <div class="article-foot-center-bot">
                                         发布了{{article.user.articleCount}}篇文章 · {{article.user.fansCount}}个粉丝
@@ -196,7 +200,9 @@
                             <div>
                                 <el-row>
                                     <el-col :span="6">
-                                        <el-link :underline="false" href="http://www.baidu.com">
+                                        <el-link :underline="false"
+                                                 :href="'/user/' + article.user.id"
+                                                 target="_blank">
                                             <el-avatar :size="48" :src="article.user.avatar">
                                                 <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png"/>
                                             </el-avatar>
@@ -204,7 +210,9 @@
                                     </el-col>
                                     <el-col :span="18">
                                         <div class="author-name">
-                                            <el-link :underline="false">
+                                            <el-link :underline="false"
+                                                     :href="'/user/' + article.user.id"
+                                                     target="_blank">
                                                 {{article.user.username}}
                                             </el-link>
                                         </div>

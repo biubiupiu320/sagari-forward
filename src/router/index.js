@@ -68,6 +68,7 @@ const routes = [
             },
             {
                 path: 'private-letter',
+                name: 'private-letter',
                 component: () => import('@/views/uc/privateLetter/PrivateLetter')
             },
             {

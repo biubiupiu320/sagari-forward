@@ -26,7 +26,8 @@
                                :loading="following"
                                @click="cancelFollow">已关注</el-button>
                     <el-button type="success"
-                               size="medium">私信</el-button>
+                               size="medium"
+                               @click="sendLetter">私信</el-button>
                 </div>
                 <div style="clear: both"></div>
             </div>
@@ -191,6 +192,39 @@
                     });
                     this.following = false;
                 });
+            },
+            sendLetter() {
+                if (this.$store.getters.getUserId === undefined) {
+                    this.$message({
+                        message: "您需要登录之后才可以向该用户发送私信",
+                        type: "error",
+                        center: true,
+                        offset: 100
+                    });
+                } else if (this.id === this.$store.getters.getUserId) {
+                    this.$message({
+                        message: "您不能向自己发送私信",
+                        type: "error",
+                        center: true,
+                        offset: 100
+                    });
+                } else {
+                    let person = {
+                        toId: this.user.id,
+                        toUsername: this.user.username,
+                        toAvatar: this.user.avatar,
+                        msg: " ",
+                        createTime: (new Date()).getTime(),
+                        page: 1,
+                        size: 10
+                    }
+                    this.$router.push({
+                        name: "private-letter",
+                        params: {
+                            person
+                        }
+                    });
+                }
             }
         },
         components: {
