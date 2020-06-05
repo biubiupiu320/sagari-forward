@@ -26,7 +26,7 @@
                 let result = res.data;
                 if (result.code === 200) {
                     localStorage.setItem("xxl-sso-session-id", result.data.sessionId);
-                    this.$router.push("/");
+                    window.location.href = "/";
                 } else if (result.code === 403) {
                     this.$alert(result.msg, "此账号已被封禁", {
                         confirmButtonText: "确定",

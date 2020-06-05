@@ -82,7 +82,7 @@
             jump(id) {
                 this.$router.push('/article/' + id);
             },
-            getHomeArticle(page = 0, size = 10) {
+            getHomeArticle: function (page = 0, size = 10) {
                 this.isLoading = true;
                 request({
                     url: "/search/getHomeArticle",
@@ -120,34 +120,6 @@
                 }).catch(err => {
 
                 });
-                /*axios.get("http://localhost/search/getHomeArticle", {
-                    params: {
-                        page,
-                        size
-                    }
-                }).then(res => {
-                    let result = res.data;
-                    if (result.code === 200) {
-                        let temps = result.data.result.map(item => item._source);
-                        for (const temp of temps) {
-                            this.invitations.push(temp)
-                        }
-                        if (temps.length !== 0) {
-                            this.page++;
-                        } else {
-                            this.$message({
-                                message: "没有更多推荐文章了",
-                                type: "success",
-                                center: true,
-                                offset: 100
-                            });
-                        }
-                        this.isLoading = false;
-                        this.loading = false;
-                    }
-                }).catch(err => {
-
-                });*/
             },
             getArticleByCategory(categoryId, page = 0, size = 10) {
                 this.isLoading = true;
@@ -163,6 +135,12 @@
                     let result = res.data;
                     if (result.code === 200) {
                         let temps = result.data.result.map(item => item._source);
+                        temps = temps.map(item => {
+                            Vditor.md2html(item.content, defaultConfig).then(res => {
+                                item.content = res.replace(/<.*?>/ig, "");
+                            });
+                            return item;
+                        })
                         for (const temp of temps) {
                             this.invitations.push(temp)
                         }
@@ -182,35 +160,6 @@
                 }).catch(err => {
 
                 });
-                /*axios.get("http://localhost/search/getArticleByCategory", {
-                    params: {
-                        categoryId,
-                        page,
-                        size
-                    }
-                }).then(res => {
-                    let result = res.data;
-                    if (result.code === 200) {
-                        let temps = result.data.result.map(item => item._source);
-                        for (const temp of temps) {
-                            this.invitations.push(temp)
-                        }
-                        if (temps.length !== 0) {
-                            this.page++;
-                        } else {
-                            this.$message({
-                                message: "没有更多推荐文章了",
-                                type: "success",
-                                center: true,
-                                offset: 100
-                            });
-                        }
-                        this.isLoading = false;
-                        this.loading = false;
-                    }
-                }).catch(err => {
-
-                });*/
             }
         }
     }

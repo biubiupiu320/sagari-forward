@@ -201,12 +201,14 @@
                 }
                 this.webSocket.onmessage = () => {
                     let data = JSON.parse(event.data);
+                    console.log(data)
                     if (data.status === 2) {
-                        if (this.user.id === data.fromId) {
-                            this.message[data.index - 1].status = 2;
+                        /*if (this.user.id === data.fromId) {
+                            this.message.push(this.handleDataSingle(data));
                         } else {
                             this.message.push(this.handleDataSingle(data));
-                        }
+                        }*/
+                        this.message.push(this.handleDataSingle(data));
                         this.scrollBottom();
                     } else {
                         if (this.user.id === data.fromId) {
@@ -331,13 +333,11 @@
                     data: fileData
                 }).then(res => {
                     let result = res.data;
-                    let msg = "";
                     if (result.code === 200) {
                         let urls = result.data.urls;
-                        for (const url of urls) {
-                            msg += url + ",";
-                        }
+                        let msg = urls.join(",");
                         let data = {
+                            index: this.message.length + 1,
                             msg,
                             fromId: this.user.id,
                             fromUsername: this.user.username,

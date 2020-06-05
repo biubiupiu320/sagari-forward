@@ -18,7 +18,7 @@
                 <el-form-item prop="avatar" label="用户头像" id="avatar">
                     <el-upload
                         class="avatar-uploader"
-                        action="http://39.96.47.184/file/upload"
+                        action="http://data.sagari.cn/file/upload"
                         :data="{type:1}"
                         :show-file-list="false"
                         :on-success="handleAvatarSuccess"
